@@ -39,7 +39,7 @@
                 <MudTd>@context.Email</MudTd>
                 <MudTd>
                     <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.TopRight">
-                        <MudMenuItem Href="@($"/account/form/{context.Id}")">
+                        <MudMenuItem Href="@($"{_navigation.BaseUri}account/form/{context.Id}")">
                             <MudText StartIcon="@Icons.Material.Filled.Edit">Editar</MudText>
                         </MudMenuItem>                       
                         <MudMenuItem OnClick="() => Delete(context)">
@@ -56,7 +56,7 @@
                 IconColor="Color.Secondary"
                 Size="Size.Medium"
                 Style="position: fixed; right: 30px; bottom: 30px;"
-                Href="/account/form" />
+                Href="account/form" />
     </MudTooltip>
 </MudContainer>
 

@@ -66,7 +66,7 @@
                         <MudMenuItem OnClick="@(() => OpenDialog(context))">
                             <MudText StartIcon="@((context.ShowDetails) ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)">Detalhes</MudText>
                         </MudMenuItem>
-                        <MudMenuItem Href="@($"/order/edit/{context.Id}")">
+                        <MudMenuItem Href="@($"{_navigation.BaseUri}order/edit/{context.Id}")">
                             <MudText StartIcon="@Icons.Material.Filled.Edit">Editar</MudText>
                         </MudMenuItem>
                         @* <MudMenuItem OnClick="() => Delete(context)">
@@ -145,7 +145,7 @@
                 IconColor="Color.Secondary"
                 Size="Size.Medium"
                 Style="position: fixed; right: 30px; bottom: 30px;"
-                Href="/order/create" />
+                Href="order/create" />
     </MudTooltip>
 </MudContainer>
 

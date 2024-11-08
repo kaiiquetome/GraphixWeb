@@ -55,7 +55,7 @@
                 </MudTd>
                 <MudTd>
                     <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.TopRight">
-                        <MudMenuItem Href="@($"/os/edit/{context.Id}")">
+                        <MudMenuItem Href="@($"{_navigation.BaseUri}os/edit/{context.Id}")">
                             <MudText StartIcon="@Icons.Material.Filled.Edit">Editar</MudText>
                         </MudMenuItem>
                         <MudMenuItem OnClick="() => Delete(context)">

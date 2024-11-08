@@ -60,7 +60,7 @@
                     <MudTd DataLabel="Observações">@context.Observation</MudTd>
                     <MudTd>
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.TopRight">
-                        <MudMenuItem Href="@($"/product/form/{context.Id}")">
+                        <MudMenuItem Href="@($"{_navigation.BaseUri}product/form/{context.Id}")">
                                 <MudText StartIcon="@Icons.Material.Filled.Edit">Editar</MudText>
                             </MudMenuItem>
                             @* <MudMenuItem OnClick="() => DeleteProduct(context.Id)">
@@ -80,7 +80,7 @@
                 IconColor="Color.Secondary"
                 Size="Size.Medium"
                 Style="position: fixed; right: 30px; bottom: 30px;"
-                Href="/product/form" />
+                Href="product/form" />
     </MudTooltip>
 </MudContainer>
 
