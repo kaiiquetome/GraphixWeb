@@ -96,7 +96,7 @@
             await _userService.Create(user);
             await InvokeAsync(() => { _alertService.ShowAlert("Usuário cadastrado com sucesso!", Severity.Success); });
             await Task.Delay(1000);
-            _navigation.NavigateTo("/user");
+            _navigation.NavigateTo($"{_navigation.BaseUri}user");
         }
         catch (Exception ex)
         {
@@ -112,7 +112,7 @@
             await _userService.Update(user);
             await InvokeAsync(() => { _alertService.ShowAlert("Usuário atualizado com sucesso!", Severity.Success); });
             await Task.Delay(1000);
-            _navigation.NavigateTo("/user");
+            _navigation.NavigateTo($"{_navigation.BaseUri}user");
         }
         catch (Exception ex)
         {
