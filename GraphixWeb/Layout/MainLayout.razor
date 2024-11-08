@@ -13,14 +13,11 @@
             <MudText Typo="Typo.body2">Rótulos e Etiquetas</MudText>
         </MudStack>
         <MudSpacer />
-        <NavLink class="nav-link" href="counter">
-            <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-        </NavLink>
         <MudMenu Icon="@Icons.Material.Filled.ManageAccounts" Color="Color.Primary" Dense="true" AnchorOrigin="Origin.CenterLeft">
-            <MudMenuItem OnClick="AccountPage">
+            <MudMenuItem Href="account">
                 <MudText Typo="Typo.body1">Contas</MudText>
             </MudMenuItem>
-            <MudMenuItem OnClick="UsersPage">
+            <MudMenuItem Href="user">
                 <MudText Typo="Typo.body1">Usuários</MudText>
             </MudMenuItem>
         </MudMenu>
