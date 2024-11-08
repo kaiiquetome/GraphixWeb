@@ -4,9 +4,22 @@
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
     <NotFound>
+        @inject NavigationManager navigationManager
+
         <PageTitle>Not found</PageTitle>
         <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Desculpe, pagina não encontrada!</p>
+            <p role="alert">Desculpe, pagina não encontrada! Redirecionando para a home...</p>
         </LayoutView>
+
+        @code {
+        protected override void OnAfterRender(bool firstRender)
+        {
+            if (firstRender)
+            {
+                // Redireciona para a página inicial ("/")
+                navigationManager.NavigateTo($"{navigationManager.BaseUri}");
+            }
+        }
+        }
     </NotFound>
 </Router>
