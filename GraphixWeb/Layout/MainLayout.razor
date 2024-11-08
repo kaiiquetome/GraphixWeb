@@ -1,16 +1,97 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
+<Alert />
+<MudThemeProvider Theme="@_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudLayout>
+    <MudAppBar Elevation="4">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <img src="images/logo.png" alt="First Label Logo" style="height: 40px; margin-left: 10px;" />
+        <MudStack Class="ml-3" Spacing="0" Justify="Justify.Center">
+            <MudText Typo="Typo.h6">First Label</MudText>
+            <MudText Typo="Typo.body2">Rótulos e Etiquetas</MudText>
+        </MudStack>
+        <MudSpacer />
+        <MudMenu Icon="@Icons.Material.Filled.ManageAccounts" Color="Color.Primary" Dense="true" AnchorOrigin="Origin.CenterLeft">
+            <MudMenuItem OnClick="AccountPage">
+                <MudText Typo="Typo.body1">Contas</MudText>
+            </MudMenuItem>
+            <MudMenuItem OnClick="UsersPage">
+                <MudText Typo="Typo.body1">Usuários</MudText>
+            </MudMenuItem>
+        </MudMenu>
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Width="10%" Style="padding-top: 16px;" Elevation="4">
         <NavMenu />
-    </div>
+    </MudDrawer>
+    <MudMainContent Class="mt-16 pa-4">
+        @Body
+    </MudMainContent>
+</MudLayout>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private MudTheme? _theme = null;
+    private bool _drawerOpen = true;
+    [Inject] private NavigationManager _navigation { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        _theme = new MudTheme()
+            {
+                PaletteLight = _lightPalette,
+                LayoutProperties = new LayoutProperties()
+            };
+    }
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private void UsersPage()
+    {
+        _navigation.NavigateTo("/user");
+    }
+
+    private void AccountPage()
+    {
+        _navigation.NavigateTo("/account");
+    }
+
+    private readonly PaletteLight _lightPalette = new PaletteLight()
+        {
+            Primary = "#445569",
+            Secondary = "#fffbfb",
+            Tertiary = "#84a1c2",
+            Surface = "#f0f0f0",
+            Background = "#f9f9f9",
+            BackgroundGray = "#f9f9f9",
+            AppbarText = "#424242",
+            AppbarBackground = "rgba(255,255,255,0.8)",
+            DrawerBackground = "#28394d",
+            DrawerText = "#fffbfb",
+            DrawerIcon = "#fffbfb",
+            ActionDefault = "#5A6B84",
+            ActionDisabled = "#f9f9f9",
+            ActionDisabledBackground = "#4455694D",
+            TextPrimary = "#2a2833",
+            TextSecondary = "#424242",
+            TextDisabled = "#00000033",
+            GrayLight = "#DDE3E9",
+            GrayLighter = "#F0F4F8",
+            Info = "#1c58d1",
+            Success = "#15a244",
+            Warning = "#f69c14",
+            Error = "#e11a3b",
+            LinesDefault = "#D0D7DF",
+            TableLines = "#D0D7DF",
+            Divider = "#D0D7DF",
+            OverlayLight = "#ffffff80",
+        };
+}
