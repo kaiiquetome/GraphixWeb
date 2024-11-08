@@ -79,7 +79,7 @@
             {
                 await InvokeAsync(() => { _alertService.ShowAlert($"Não foi possível encontrar o cliente id:{id.Value}.", Severity.Error); });
                 await Task.Delay(1000);
-                _navigation.NavigateTo("/customer"); // Opcional: Redirecionar se não encontrar
+                _navigation.NavigateTo($"{_navigation.BaseUri}customer"); // Opcional: Redirecionar se não encontrar
             }
         }
     }
@@ -103,7 +103,7 @@
             await _customerService.Create(customer);
             await InvokeAsync(() => { _alertService.ShowAlert("Cliente cadastrado com sucesso!", Severity.Success); });
             await Task.Delay(1000);
-            _navigation.NavigateTo("/customer");
+            _navigation.NavigateTo($"{_navigation.BaseUri}customer");
         }
         catch (Exception ex)
         {
@@ -119,7 +119,7 @@
             await _customerService.Update(customer);
             await InvokeAsync(() => { _alertService.ShowAlert("Cliente atualizado com sucesso!", Severity.Success); });
             await Task.Delay(1000);
-            _navigation.NavigateTo("/customer");
+            _navigation.NavigateTo($"{_navigation.BaseUri}customer");
         }
         catch (Exception ex)
         {

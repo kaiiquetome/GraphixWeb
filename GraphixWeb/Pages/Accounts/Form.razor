@@ -97,7 +97,7 @@
             await _accountService.Create(account);
             await InvokeAsync(() => { _alertService.ShowAlert("Conta cadastrada com sucesso!", Severity.Success); });
             await Task.Delay(1000);
-            _navigation.NavigateTo("/account");
+            _navigation.NavigateTo($"{_navigation.BaseUri}account");
         }
         catch (Exception ex)
         {
@@ -113,7 +113,7 @@
             await _accountService.Update(account);
             await InvokeAsync(() => { _alertService.ShowAlert("Conta atualizada com sucesso!", Severity.Success); });
             await Task.Delay(1000);
-            _navigation.NavigateTo("/account");
+            _navigation.NavigateTo($"{_navigation.BaseUri}account");
         }
         catch (Exception ex)
         {

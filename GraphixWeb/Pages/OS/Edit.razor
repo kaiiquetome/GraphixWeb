@@ -356,7 +356,7 @@
         {
             await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
             await Task.Delay(1000);
-            _navigation.NavigateTo("/os");
+            _navigation.NavigateTo($"{_navigation.BaseUri}os");
         }
     }
     private void PrintOrderService()
@@ -375,7 +375,7 @@
             await InvokeAsync(() => { _alertService.ShowAlert($"Ordem de Serviço n°{os.Id} atualizada com sucesso!", Severity.Success); });
 
             await Task.Delay(1000);
-            _navigation.NavigateTo("/os");
+            _navigation.NavigateTo($"{_navigation.BaseUri}os");
         }
         catch (Exception ex)
         {

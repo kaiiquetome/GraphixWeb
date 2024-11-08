@@ -134,12 +134,12 @@
             }
             else
             {
-                _navigation.NavigateTo("/orderservice");
+                _navigation.NavigateTo($"{_navigation.BaseUri}orderservice");
             }
         }
         catch (Exception ex)
         {
-            _navigation.NavigateTo("/orderservice");
+            _navigation.NavigateTo($"{_navigation.BaseUri}orderservice");
         }
     }
     private void PrintOrderService()
@@ -187,7 +187,7 @@
                 {
                     await DownloadOS(response);
                 }
-                _navigation.NavigateTo("/order");
+                _navigation.NavigateTo($"{_navigation.BaseUri}order");
             }
 
         }
@@ -200,7 +200,7 @@
 
     private void Cancel()
     {
-        _navigation.NavigateTo("/orderservice");
+        _navigation.NavigateTo($"{_navigation.BaseUri}orderservice");
     }
     private async Task DownloadOS(OS obj)
     {

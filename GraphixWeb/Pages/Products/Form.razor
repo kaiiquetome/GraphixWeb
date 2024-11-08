@@ -107,7 +107,7 @@
             {
                 await InvokeAsync(() => { _alertService.ShowAlert($"Não foi possível encontrar o produto id:{id.Value}.", Severity.Error); });
                 await Task.Delay(1000);
-                _navigation.NavigateTo("/product"); // Opcional: Redirecionar se não encontrar
+                _navigation.NavigateTo($"{_navigation.BaseUri}product"); // Opcional: Redirecionar se não encontrar
             }
         }
     }
@@ -131,7 +131,7 @@
             await _productService.Create(product);
             await InvokeAsync(() => { _alertService.ShowAlert("Produto cadastrado com sucesso!", Severity.Success); });
             await Task.Delay(1000);
-            _navigation.NavigateTo("/product");
+            _navigation.NavigateTo($"{_navigation.BaseUri}product");
         }
         catch (Exception ex)
         {
@@ -147,7 +147,7 @@
             await _productService.Update(product);
             await InvokeAsync(() => { _alertService.ShowAlert("Produto atualizado com sucesso!", Severity.Success); });
             await Task.Delay(1000);
-            _navigation.NavigateTo("/product");
+            _navigation.NavigateTo($"{_navigation.BaseUri}product");
         }
         catch (Exception ex)
         {

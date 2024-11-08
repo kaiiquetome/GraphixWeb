@@ -247,7 +247,7 @@
             await InvokeAsync(() => { _alertService.ShowAlert("Pedido atualizado com sucesso!", Severity.Success); });
             await Task.Delay(1000);
 
-            _navigation.NavigateTo("/order");
+            _navigation.NavigateTo($"{_navigation.BaseUri}order");
         }
         catch (Exception ex)
         {

@@ -313,7 +313,7 @@
                 await DownloadOrder(response);
             }
 
-            _navigation.NavigateTo("/Order");
+            _navigation.NavigateTo($"{_navigation.BaseUri}Order");
         }
         catch (Exception ex)
         {
