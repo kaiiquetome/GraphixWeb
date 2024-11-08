@@ -33,7 +33,7 @@
                 <MudTd>@context.Profile.GetEnumDescription()</MudTd>
                 <MudTd>
                     <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.TopRight">
-                        <MudMenuItem Href="@($"/user/form/{context.Id}")">
+                        <MudMenuItem Href="@($"user/form/{context.Id}")">
                             <MudText StartIcon="@Icons.Material.Filled.Edit">Editar</MudText>
                         </MudMenuItem>
                         <MudMenuItem OnClick="() => DeleteUser(context)">
@@ -73,12 +73,12 @@
     
     private void CreateNewUser()
     {
-        _navigation.NavigateTo("/user/create");
+        _navigation.NavigateTo("user/create");
     }
 
     private void EditUser(int id)
     {
-        _navigation.NavigateTo($"/user/form/{id}");
+        _navigation.NavigateTo($"user/form/{id}");
     }
 
     private async Task DeleteUser(User obj)
