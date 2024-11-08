@@ -1,0 +1,43 @@
+name: gh-pages
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configurar .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install .NET Wasm Tools
+        run: dotnet workload install wasm-tools
+        
+      - name: Restaurar dependências
+        run: dotnet restore GraphixWeb/GraphixWeb.csproj
+
+      - name: Publicar com dotnet
+        run: dotnet publish GraphixWeb/GraphixWeb.csproj --configuration Release --output build
+
+      - name: Alterar base-tag no index.html de / para /BlazorWasmFromGithubPages/
+        run: sed -i 's|<base href="/" />|<base href="/GraphixWeb/" />|g' build/wwwroot/index.html
+
+      - name: Adicionar arquivo .nojekyll
+        run: touch build/wwwroot/.nojekyll
+
+      - name: Commit wwwroot para GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: build/wwwroot
