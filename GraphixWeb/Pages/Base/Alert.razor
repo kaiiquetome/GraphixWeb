@@ -1,0 +1,52 @@
+﻿@implements IDisposable
+@inject AlertService AlertService
+
+<style>
+    .alert-top-right {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: auto;
+        max-width: 300px; /* Adjust as needed */
+        z-index: 9999; /* Ensure it is above all other components */
+    }
+</style>
+
+@if (showAlert)
+{
+    <MudAlert Severity=@alertSeverity Variant="Variant.Filled" Elevation="24" Class="alert-top-right">
+        <div>@message</div>
+    </MudAlert>
+}
+
+@code {
+    private string message;
+    private Severity alertSeverity;
+    private bool showAlert;
+
+    protected override void OnInitialized()
+    {
+        AlertService.OnShow += ShowAlert;
+    }
+
+    private void ShowAlert(string message, Severity severity)
+    {
+        this.message = message;
+        this.alertSeverity = severity;
+        showAlert = true;
+        StateHasChanged();
+        _ = HideAlert();
+    }
+
+    private async Task HideAlert()
+    {
+        await Task.Delay(5000);
+        showAlert = false;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        AlertService.OnShow -= ShowAlert;
+    }
+}

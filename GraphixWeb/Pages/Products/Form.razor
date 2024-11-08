@@ -1,0 +1,158 @@
+﻿@page "/product/form"
+@page "/product/form/{id:int}"
+
+@inject NavigationManager _navigation
+@inject IProductService _productService
+@inject AlertService _alertService
+
+<Alert />
+
+<PageTitle>Produtos</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-3" Style="width: 100%;">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">@FormTitle</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="()=> HandleValidSubmit()">
+                    @ButtonText
+                </MudButton>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudPaper Elevation="1" Class="pa-6" Style="background-color: #fefefe;">
+            <EditForm Model="@product" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudTextField Label="Descrição"
+                                      @bind-Value="product.Description"
+                                      For="@(() => product.Description)"
+                                      Required="true"
+                                      Class="mb-3" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Tamanho"
+                                      @bind-Value="product.Finish"
+                                      For="@(() => product.Finish)"
+                                      Required="true"
+                                      Class="mb-3" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Cor"
+                                      @bind-Value="product.Color"
+                                      For="@(() => product.Color)"
+                                      Required="true"
+                                      Class="mb-3" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Dimensão"
+                                      @bind-Value="product.Dimension"
+                                      For="@(() => product.Dimension)"
+                                      Required="true"
+                                      Class="mb-3" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Faca"
+                                      @bind-Value="product.Knife"
+                                      For="@(() => product.Knife)"
+                                      Required="true"
+                                      Class="mb-3" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Tubete"
+                                      @bind-Value="product.Tubet"
+                                      For="@(() => product.Tubet)"
+                                      Required="true"
+                                      Class="mb-3" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField Label="Material"
+                                      @bind-Value="product.Material"
+                                      For="@(() => product.Material)"
+                                      Required="true"
+                                      Class="mb-3" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField Label="Observações"
+                                      @bind-Value="product.Observation"
+                                      For="@(() => product.Observation)"
+                                      Required="true"
+                                      Class="mb-3" />
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        </MudPaper>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter] public int? id { get; set; }
+    private Product product = new Product();
+    private string FormTitle = "Novo Produto";
+    private string ButtonText = "Salvar";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id.HasValue)
+        {
+            FormTitle = "Atualizar Produto";
+            ButtonText = "Salvar";
+            try
+            {
+                product = await _productService.Get(id.Value);
+            }
+            catch (Exception ex)
+            {
+                await InvokeAsync(() => { _alertService.ShowAlert($"Não foi possível encontrar o produto id:{id.Value}.", Severity.Error); });
+                await Task.Delay(1000);
+                _navigation.NavigateTo("/product"); // Opcional: Redirecionar se não encontrar
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (id.HasValue)
+        {
+            await UpdateProduct();
+        }
+        else
+        {
+            await CreateProduct();
+        }
+    }
+
+    private async Task CreateProduct()
+    {
+        try
+        {
+            await _productService.Create(product);
+            await InvokeAsync(() => { _alertService.ShowAlert("Produto cadastrado com sucesso!", Severity.Success); });
+            await Task.Delay(1000);
+            _navigation.NavigateTo("/product");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+
+    private async Task UpdateProduct()
+    {
+        try
+        {
+            await _productService.Update(product);
+            await InvokeAsync(() => { _alertService.ShowAlert("Produto atualizado com sucesso!", Severity.Success); });
+            await Task.Delay(1000);
+            _navigation.NavigateTo("/product");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+}

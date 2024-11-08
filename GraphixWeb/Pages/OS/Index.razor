@@ -1,0 +1,186 @@
+﻿@page "/os"
+@inject IOSService _service
+@inject NavigationManager _navigation
+@inject AlertService _alertService
+@inject IJSRuntime _js
+
+<Alert />
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-3" Style="width: 100%;">
+            <MudGrid>
+                <MudItem xs="12" class="d-flex justify-start mb-3">
+                    <MudText Typo="Typo.h6">Ordens de Serviço</MudText>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="searchString"
+                                  Placeholder="Pesquisar ordem de serviço..."
+                                  Adornment="Adornment.Start"
+                                  AdornmentColor="Color.Primary"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Immediate="true"
+                                  DebounceInterval="300" />
+                </MudItem>
+            </MudGrid>
+        <MudTable Items="@filteredOSs"
+                  Filter="FilterFunc"
+                  @bind-CurrentPage="currentPage"
+                  @bind-RowsPerPage="rowsPerPage"
+                  RowsPerPageOptions="rowsPerPageOptions"
+                  Elevation="1"
+                  Hover="true"
+                  Dense="false"
+                  Bordered="true"
+                  Style="background-color: #fefefe;"
+                  Breakpoint="Breakpoint.Sm"
+                  Loading="@loading"
+                  LoadingProgressColor="Color.Primary">
+            <HeaderContent>
+                <MudTh>Nº OS</MudTh>
+                <MudTh>Nº do Pedido</MudTh>
+                <MudTh>Cliente</MudTh>
+                <MudTh>Observações</MudTh>
+                <MudTh>Prazo de Entrega</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Numero OS">@context.Id</MudTd>
+                <MudTd DataLabel="Numero Pedido">@context.Order.OrderNumber</MudTd>
+                <MudTd DataLabel="Cliente">@context.Customer.CorporateName</MudTd>
+                <MudTd DataLabel="Cliente">@context.Order.Observation</MudTd>
+                <MudTd DataLabel="Total">@context.DeliveryDeadline</MudTd>
+                <MudTd DataLabel="Status">
+                    <MudText Color="@GetStatusColor(context.Status)">
+                        @context.Status.GetEnumDescription()
+                    </MudText>
+                </MudTd>
+                <MudTd>
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.TopRight">
+                        <MudMenuItem Href="@($"/os/edit/{context.Id}")">
+                            <MudText StartIcon="@Icons.Material.Filled.Edit">Editar</MudText>
+                        </MudMenuItem>
+                        <MudMenuItem OnClick="() => Delete(context)">
+                            <MudText StartIcon="@Icons.Material.Filled.Delete">Excluir</MudText>
+                        </MudMenuItem>
+                        <MudMenuItem OnClick="() => DownloadOS(context)">
+                            <MudText StartIcon="@Icons.Material.Filled.Download">Imprimir</MudText>
+                        </MudMenuItem>
+                    </MudMenu>
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager RowsPerPageString="OS Por Página" />
+            </PagerContent>
+            </MudTable>
+        </MudPaper>
+</MudContainer>
+@code {
+    [Inject] private IDialogService dialog { get; set; }
+    private List<OS> osLIst = new List<OS>();
+    private List<OS> filteredOSs = new List<OS>();
+    private bool loading;
+    private string searchString = "";
+
+    private int currentPage;
+    private int rowsPerPage = 20;
+    private int[] rowsPerPageOptions = new[] { 5, 10, 20 };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            loading = true;
+            await InvokeAsync(StateHasChanged);
+            osLIst = await _service.Get();
+            filteredOSs = osLIst;
+            loading = false;
+            await InvokeAsync(StateHasChanged);
+
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+        }
+    }
+    private Color GetStatusColor(OSStatus status)
+    {
+        var description = status.GetEnumDescription();
+        return description switch
+        {
+            "Pendente" => Color.Warning,
+            "Em Execução" => Color.Primary,
+            "Finalizado" => Color.Success,
+            _ => Color.Default
+        };
+    }
+
+    private async Task Delete(OS obj)
+    {
+        try
+        {
+            bool? result = await dialog.ShowMessageBox(
+            "Excluir",
+            $"Confirma a exclusão da ordem de serviço: {obj.Id}?",
+            yesText: "Sim", cancelText: "Não");
+            if (result != null && result == true)
+            {
+                await _service.Delete(obj.Id);
+
+                await InvokeAsync(() => { _alertService.ShowAlert("Ordem de Serviço deletada com sucesso!", Severity.Success); });
+                await Task.Delay(1000);
+
+                await OnInitializedAsync();
+            }
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); }); await Task.Delay(1000);
+        }
+    }
+    private async Task DownloadOS(OS obj)
+    {
+        try
+        {
+            var fileBytes = await _service.Download(obj.Id);
+
+            var fileName = $"Ordem de Serviço_{obj.Id}-{obj.Customer.CorporateName}.pdf";
+            var contentType = "application/pdf";
+
+            var base64 = Convert.ToBase64String(fileBytes);
+
+            await _js.InvokeVoidAsync("downloadFileFromBytes", fileName, contentType, fileBytes);
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+    #region filter
+    private bool FilterFunc(OS os)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        if (os.Order.OrderNumber.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (os.Id.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (os.Customer.CorporateName.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (os.Id.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+    private void OnSearch(string text)
+    {
+        searchString = text;
+        filteredOSs = osLIst.Where(FilterFunc).ToList();
+        currentPage = 0; // Resetar para a primeira página após a busca
+    }
+    #endregion
+}

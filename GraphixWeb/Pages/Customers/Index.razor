@@ -1,0 +1,145 @@
+﻿@page "/customer"
+@inject NavigationManager _navigation
+@inject ICustomerService _service
+@inject AlertService _alertService
+@inject IDialogService dialog
+@inject ISnackbar Snackbar
+
+<Alert />
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-3" Style="width: 100%;">
+        <MudGrid>
+            <MudItem xs="12" class="d-flex justify-start mb-3">
+                <MudText Typo="Typo.h6">Clientes</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="searchString"
+                            Placeholder="Pesquisar clientes..."
+                            Adornment="Adornment.Start"
+                            AdornmentColor="Color.Primary"
+                            AdornmentIcon="@Icons.Material.Filled.Search"
+                            Immediate="true"
+                            DebounceInterval="300" />
+            </MudItem>
+        </MudGrid>        
+            <MudTable 
+                Elevation="1"
+                Dense="false"
+                Style="background-color: #fefefe;"
+                Bordered="true"
+                Items="filteredCustomers"
+                Filter="FilterFunc"
+                Loading="@loading"
+                LoadingProgressColor="Color.Primary"                
+                SortLabel="Ordenar"
+                Breakpoint="Breakpoint.Sm"
+                @bind-CurrentPage="currentPage"
+                @bind-RowsPerPage="rowsPerPage"                
+                RowsPerPageOptions="rowsPerPageOptions">
+                <HeaderContent>
+                    <MudTh DataLabel="Razão Social" SortLabel="CorporateName">Razão Social</MudTh>
+                    <MudTh DataLabel="CNPJ" SortLabel="Cnpj">CNPJ</MudTh>
+                    <MudTh DataLabel="Inscrição Estadual" SortLabel="IE">Inscrição Estadual</MudTh>
+                    <MudTh DataLabel="Contato" SortLabel="Contact">Contato</MudTh>                    
+                    <MudTh DataLabel="Telefone" SortLabel="Phone">Telefone</MudTh>
+                <MudTh DataLabel="Email" SortLabel="Email">Email</MudTh>
+                <MudTh>Ações</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Razão Social">@context.CorporateName</MudTd>
+                <MudTd DataLabel="CNPJ">@context.Cnpj</MudTd>
+                <MudTd DataLabel="Inscrição Estadual">@context.IE</MudTd>
+                <MudTd DataLabel="Contato">@context.Contact</MudTd>
+                <MudTd DataLabel="Telefone">@context.Phone</MudTd>
+                <MudTd DataLabel="Email">@context.Email</MudTd>
+                    <MudTd>
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.TopRight">
+                            <MudMenuItem Href="@($"/customer/form/{context.Id}")">
+                                <MudText StartIcon="@Icons.Material.Filled.Edit">Editar</MudText>
+                            </MudMenuItem>
+                            @* <MudMenuItem OnClick="() => DeleteCustomer(context)">
+                                <MudText StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Excluir</MudText>
+                            </MudMenuItem> *@
+                        </MudMenu>
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                <MudTablePager RowsPerPageString="Clientes por página" />
+                </PagerContent>
+            </MudTable>
+    </MudPaper>
+    <MudTooltip Text="Adicionar Novo">
+        <MudFab StartIcon="@Icons.Material.Filled.Add"
+                Color="Color.Primary"
+                IconColor="Color.Secondary"
+                Size="Size.Medium"
+                Style="position: fixed; right: 30px; bottom: 30px;"
+                Href="/customer/form" />
+    </MudTooltip>
+</MudContainer>
+
+@code {
+    private List<Customer> customers = new();
+    private List<Customer> filteredCustomers = new();
+    private string searchString = "";
+    private bool loading;
+
+    private int currentPage;
+    private int rowsPerPage = 20;
+    private int[] rowsPerPageOptions = new[] { 5, 10, 20 };
+
+    protected override async Task OnInitializedAsync()
+    {
+        loading = true;
+        customers = await _service.Get();
+        filteredCustomers = customers;
+        loading = false;
+    }
+
+    private bool FilterFunc(Customer customer)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        if (customer.CorporateName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (customer.Cnpj.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (customer.IE.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (customer.Contact.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+
+    private void OnSearch(string text)
+    {
+        searchString = text;
+        filteredCustomers = customers.Where(FilterFunc).ToList();
+        currentPage = 0; // Resetar para a primeira página após a busca
+    }
+
+    private async Task DeleteCustomer(Customer obj)
+    {
+        try
+        {
+            bool? result = await dialog.ShowMessageBox(
+                "Excluir",
+                $"Confirma a exclusão do cliente: {obj.CorporateName}?",
+                yesText: "Sim", cancelText: "Não");
+            if (result == true)
+            {
+                await _service.Delete(obj.Id);
+                await InvokeAsync(() => { _alertService.ShowAlert("Cliente deletado com sucesso!", Severity.Success); });
+                customers.Remove(obj);
+            }
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+        }
+    }
+
+
+}

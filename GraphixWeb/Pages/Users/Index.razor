@@ -1,0 +1,104 @@
+﻿@page "/user"
+@inject IUserService _service
+@inject NavigationManager _navigation
+@inject AlertService _alertService
+@inject IDialogService dialog
+@inject IDialogService DialogService
+
+<Alert />
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-3" Style="width: 100%;">
+        <MudGrid>
+            <MudItem xs="12" class="d-flex justify-start mb-3">
+                <MudText Typo="Typo.h6">Usuários</MudText>
+            </MudItem>
+        </MudGrid>
+        <MudTable Hover="true"
+                  Style="background-color: #fefefe;"
+                  Dense="false"
+                  Bordered="true"
+                  Items="users"
+                  Loading="@loading"
+                  LoadingProgressColor="Color.Primary">
+            <HeaderContent>
+                <MudTh>Nome</MudTh>
+                <MudTh>Login</MudTh>
+                <MudTh>Perfil</MudTh>
+                <MudTh>Ações</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Name</MudTd>
+                <MudTd>@context.Login</MudTd>
+                <MudTd>@context.Profile.GetEnumDescription()</MudTd>
+                <MudTd>
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.TopRight">
+                        <MudMenuItem Href="@($"/user/form/{context.Id}")">
+                            <MudText StartIcon="@Icons.Material.Filled.Edit">Editar</MudText>
+                        </MudMenuItem>
+                        <MudMenuItem OnClick="() => DeleteUser(context)">
+                            <MudText StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Excluir</MudText>
+                        </MudMenuItem>
+                    </MudMenu>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+
+    </MudPaper>
+    <MudGrid>
+        <MudItem>
+            <MudTooltip Text="Criar Novo Usuário">
+                <MudFab StartIcon="@Icons.Material.Filled.Add"
+                        Color="Color.Primary"
+                        IconColor="Color.Secondary"
+                        Size="Size.Medium"
+                        Style="position: fixed; right: 30px; bottom: 30px;
+                        " Href="/user/form" />
+            </MudTooltip>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private List<User> users = new List<User>();
+    private bool loading = false;
+    protected override async Task OnInitializedAsync()
+    {
+        loading = true;
+        users = await _service.Get();
+        loading = false;
+        StateHasChanged();
+    }
+
+    
+    private void CreateNewUser()
+    {
+        _navigation.NavigateTo("/user/create");
+    }
+
+    private void EditUser(int id)
+    {
+        _navigation.NavigateTo($"/user/form/{id}");
+    }
+
+    private async Task DeleteUser(User obj)
+    {
+        try
+        {
+            bool? result = await dialog.ShowMessageBox(
+                "Excluir",
+                $"Confirma a exclusão da conta: {obj.Name}?",
+                yesText: "Sim", cancelText: "Não");
+            if (result == true)
+            {
+                await _service.Delete(obj.Id);
+                await InvokeAsync(() => { _alertService.ShowAlert("Conta deletada com sucesso!", Severity.Success); });
+                users.Remove(obj);
+            }
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+        }
+    }
+}

@@ -1,0 +1,130 @@
+﻿@page "/customer/form"
+@page "/customer/form/{id:int}"
+
+@inject NavigationManager _navigation
+@inject ICustomerService _customerService
+@inject AlertService _alertService
+
+<Alert />
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-3" Style="width: 100%;">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">@FormTitle</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="()=> HandleValidSubmit()">
+                    @ButtonText
+                </MudButton>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudPaper Elevation="1" Class="pa-6" Style="background-color: #fefefe;">
+            <EditForm Model="@customer" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudTextField Label="Razão Social"
+                                      @bind-Value="customer.CorporateName"
+                                      For="@(() => customer.CorporateName)"
+                                      Required="true"
+                                      Class="mb-3" />
+                        <MudTextField Label="CNPJ"
+                                      Mask="@(new PatternMask("00.000.000/0000-00"))"
+                                      @bind-Value="customer.Cnpj"
+                                      For="@(() => customer.Cnpj)"
+                                      Required="true"
+                                      Class="mb-3" />
+                        <MudTextField Label="IE"
+                                      @bind-Value="customer.IE"
+                                      For="@(() => customer.IE)"
+                                      Class="mb-3" />
+                        <MudTextField Label="Contato"
+                                      @bind-Value="customer.Contact"
+                                      For="@(() => customer.Contact)"
+                                      Class="mb-3" />
+                        <MudTextField Label="Telefone"
+                                      Mask="@(new PatternMask("(00) 00000-0000"))"
+                                      @bind-Value="customer.Phone"
+                                      For="@(() => customer.Phone)"
+                                      Class="mb-3" />
+                        <MudTextField Label="Email"
+                                      @bind-Value="customer.Email"
+                                      For="@(() => customer.Email)"
+                                      Class="mb-3" />
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        </MudPaper>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter] public int? id { get; set; }
+    private Customer customer = new Customer();
+    private string FormTitle = "Novo Cliente";
+    private string ButtonText = "Salvar";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id.HasValue)
+        {
+            FormTitle = "Atualizar Cliente";
+            ButtonText = "Salvar";
+            try
+            {
+                customer = await _customerService.Get(id.Value);
+            }
+            catch (Exception ex)
+            {
+                await InvokeAsync(() => { _alertService.ShowAlert($"Não foi possível encontrar o cliente id:{id.Value}.", Severity.Error); });
+                await Task.Delay(1000);
+                _navigation.NavigateTo("/customer"); // Opcional: Redirecionar se não encontrar
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (id.HasValue)
+        {
+            await UpdateCustomer();
+        }
+        else
+        {
+            await CreateCustomer();
+        }
+    }
+
+    private async Task CreateCustomer()
+    {
+        try
+        {
+            await _customerService.Create(customer);
+            await InvokeAsync(() => { _alertService.ShowAlert("Cliente cadastrado com sucesso!", Severity.Success); });
+            await Task.Delay(1000);
+            _navigation.NavigateTo("/customer");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+
+    private async Task UpdateCustomer()
+    {
+        try
+        {
+            await _customerService.Update(customer);
+            await InvokeAsync(() => { _alertService.ShowAlert("Cliente atualizado com sucesso!", Severity.Success); });
+            await Task.Delay(1000);
+            _navigation.NavigateTo("/customer");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+}

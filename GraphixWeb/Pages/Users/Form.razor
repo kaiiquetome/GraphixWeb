@@ -1,0 +1,123 @@
+﻿@page "/user/form"
+@page "/user/form/{id:int}"
+
+@inject NavigationManager _navigation
+@inject IUserService _userService
+@inject AlertService _alertService
+
+<Alert />
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-3" Style="width: 100%;">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">@FormTitle</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="()=> HandleValidSubmit()">
+                    @ButtonText
+                </MudButton>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudPaper Elevation="1" Class="pa-6" Style="background-color: #fefefe;">
+            <EditForm Model="@user" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudTextField Label="Nome"
+                                      @bind-Value="user.Name"
+                                      For="@(() => user.Name)"
+                                      Required="true"
+                                      Class="mb-3" />
+                        <MudTextField Label="Login"
+                                      @bind-Value="user.Login"
+                                      For="@(() => user.Login)"
+                                      Required="true"
+                                      Class="mb-3" />
+                        <MudTextField Label="Senha"
+                                      @bind-Value="user.Password"
+                                      For="@(() => user.Password)"
+                                      Required="true"
+                                      Class="mb-3"
+                                      InputType="InputType.Password" />
+                        <MudSelect T="UserProfile" Label="Perfil" @bind-Value="user.Profile" Required="true">
+                            @foreach (var profile in Enum.GetValues(typeof(UserProfile)).Cast<UserProfile>())
+                            {
+                                <MudSelectItem Value="profile">@profile</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        </MudPaper>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter] public int? id { get; set; }
+    private User user = new User();
+    private string FormTitle = "Novo Usuário";
+    private string ButtonText = "Salvar";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id.HasValue)
+        {
+            FormTitle = "Atualizar Usuário";
+            ButtonText = "Salvar";
+            try
+            {
+                user = await _userService.Get(id.Value);
+            }
+            catch (Exception ex)
+            {
+                await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+                await Task.Delay(1000);
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (id.HasValue)
+        {
+            await UpdateUser();
+        }
+        else
+        {
+            await CreateUser();
+        }
+    }
+
+    private async Task CreateUser()
+    {
+        try
+        {
+            await _userService.Create(user);
+            await InvokeAsync(() => { _alertService.ShowAlert("Usuário cadastrado com sucesso!", Severity.Success); });
+            await Task.Delay(1000);
+            _navigation.NavigateTo("/user");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+
+    private async Task UpdateUser()
+    {
+        try
+        {
+            await _userService.Update(user);
+            await InvokeAsync(() => { _alertService.ShowAlert("Usuário atualizado com sucesso!", Severity.Success); });
+            await Task.Delay(1000);
+            _navigation.NavigateTo("/user");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+}

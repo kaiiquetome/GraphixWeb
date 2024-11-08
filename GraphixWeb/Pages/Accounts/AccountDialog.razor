@@ -1,0 +1,145 @@
+﻿@inject NavigationManager _navigation
+@inject IAccountService _service
+@inject AlertService _alertService
+@inject IDialogService dialog
+@inject IDialogService DialogService
+
+<MudDialog >
+    <DialogContent>
+        <MudGrid >
+                    <MudItem  >
+                        <MudText Typo="Typo.h6">@FormTitle</MudText>
+                    </MudItem>
+                </MudGrid>
+        <MudPaper Elevation="1" Height="400px" Class="pa-4" Style="background-color: #fefefe;">
+                    <EditForm Model="@account" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <MudGrid>
+                            <MudItem >
+                                <MudTextField
+                                    Mask="@(new PatternMask("00.000.000/0000-00") )"
+                                             Label="Razão Social"
+                                              @bind-Value="account.CorporateName"
+                                              For="@(() => account.CorporateName)"
+                                              Required="true"
+                                              Class="mb-3" />
+                                <MudTextField Label="CNPJ"
+                                              @bind-Value="account.Cnpj"
+                                              For="@(() => account.Cnpj)"
+                                              Required="true"
+                                              Class="mb-3" />
+                                <MudTextField Label="IE"
+                                              @bind-Value="account.IE"
+                                              For="@(() => account.IE)"
+                                              Class="mb-3" />
+                                <MudTextField Label="Telefone"
+                                              @bind-Value="account.Phone"
+                                              For="@(() => account.Phone)"
+                                              Class="mb-3" />
+                                <MudTextField Label="Email"
+                                              @bind-Value="account.Email"
+                                              For="@(() => account.Email)"
+                                              Class="mb-3" />
+                            </MudItem>
+                        </MudGrid>
+                        <MudGrid>
+                            <MudItem  class="d-flex justify-end mt-4">
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Info">@ButtonText</MudButton>
+                                <MudButton OnClick="Cancel" Class="ml-2">Cancelar</MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </EditForm>
+                </MudPaper>
+    </DialogContent>
+</MudDialog>
+
+
+@code {
+   
+    // Permite acessar a instância do MudDialog para controlar o fechamento
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; }
+
+    // Parâmetro para receber o ID da conta, se estiver editando
+    [Parameter] public int? id { get; set; }
+
+    // Modelo da conta para o formulário
+    private Account account = new Account();
+
+    // Título do formulário e texto do botão, ajustados conforme a operação
+    private string FormTitle = "Criar Conta";
+    private string ButtonText = "Salvar";
+
+    // Injeção de dependências dos serviços necessários
+    [Inject] private IAccountService _accountService { get; set; }
+
+    // Inicialização do componente
+    protected override async Task OnInitializedAsync()
+    {
+        if (id.HasValue)
+        {
+            FormTitle = "Atualizar Conta";
+            ButtonText = "Salvar";
+            try
+            {
+                account = await _accountService.Get(id.Value);
+            }
+            catch (Exception ex)
+            {
+                await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+                // Fecha o diálogo se ocorrer um erro ao carregar a conta
+                MudDialog.Cancel();
+            }
+        }
+    }
+
+    // Método chamado quando o formulário é submetido com sucesso
+    private async Task HandleValidSubmit()
+    {
+        if (id.HasValue)
+        {
+            await UpdateAccount();
+        }
+        else
+        {
+            await CreateAccount();
+        }
+    }
+
+    // Método para criar uma nova conta
+    private async Task CreateAccount()
+    {
+        try
+        {
+            await _accountService.Create(account);
+            await InvokeAsync(() => { _alertService.ShowAlert("Conta cadastrada com sucesso!", Severity.Success); });
+            // Fecha o diálogo e retorna a conta criada
+            MudDialog.Close(DialogResult.Ok(account));
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+        }
+    }
+
+    // Método para atualizar uma conta existente
+    private async Task UpdateAccount()
+    {
+        try
+        {
+            await _accountService.Update(account);
+            await InvokeAsync(() => { _alertService.ShowAlert("Conta atualizada com sucesso!", Severity.Success); });
+            // Fecha o diálogo e retorna a conta atualizada
+            MudDialog.Close(DialogResult.Ok(account));
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+        }
+    }
+
+    // Método para cancelar a operação e fechar o diálogo
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

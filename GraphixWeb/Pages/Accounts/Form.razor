@@ -1,0 +1,124 @@
+﻿@page "/account/form"
+@page "/account/form/{id:int}"
+
+@inject NavigationManager _navigation
+@inject IAccountService _accountService
+@inject AlertService _alertService
+
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-3" Style="width: 100%;">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">@FormTitle</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="()=> HandleValidSubmit()">
+                    @ButtonText
+                </MudButton>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudPaper Elevation="1" Class="pa-6" Style="background-color: #fefefe;">
+            <EditForm Model="@account" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudTextField Label="Razão Social"
+                                      @bind-Value="account.CorporateName"
+                                      For="@(() => account.CorporateName)"
+                                      Required="true"
+                                      Class="mb-3" />
+                        <MudTextField Mask="@(new PatternMask("00.000.000/0000-00"))"
+                                      Label="CNPJ"
+                                      @bind-Value="account.Cnpj"
+                                      For="@(() => account.Cnpj)"
+                                      Required="true"
+                                      Class="mb-3" />
+                        <MudTextField Label="IE"
+                                      @bind-Value="account.IE"
+                                      For="@(() => account.IE)"
+                                      Class="mb-3" />
+                        <MudTextField Mask="@(new PatternMask("(00) 00000-0000"))"
+                                      Label="Telefone"
+                                      @bind-Value="account.Phone"
+                                      For="@(() => account.Phone)"
+                                      Class="mb-3" />
+                        <MudTextField Label="Email"
+                                      @bind-Value="account.Email"
+                                      For="@(() => account.Email)"
+                                      Class="mb-3" />
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        </MudPaper>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter] public int? id { get; set; }
+    private Account account = new Account();
+    private string FormTitle = "Nova Conta";
+    private string ButtonText = "Salvar";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id.HasValue)
+        {
+            FormTitle = "Atualizar Conta";
+            ButtonText = "Salvar";
+            try
+            {
+                account = await _accountService.Get(id.Value);
+            }
+            catch (Exception ex)
+            {
+                await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+                await Task.Delay(1000);
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (id.HasValue)
+        {
+            await UpdateAccount();
+        }
+        else
+        {
+            await CreateAccount();
+        }
+    }
+
+    private async Task CreateAccount()
+    {
+        try
+        {
+            await _accountService.Create(account);
+            await InvokeAsync(() => { _alertService.ShowAlert("Conta cadastrada com sucesso!", Severity.Success); });
+            await Task.Delay(1000);
+            _navigation.NavigateTo("/account");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+
+    private async Task UpdateAccount()
+    {
+        try
+        {
+            await _accountService.Update(account);
+            await InvokeAsync(() => { _alertService.ShowAlert("Conta atualizada com sucesso!", Severity.Success); });
+            await Task.Delay(1000);
+            _navigation.NavigateTo("/account");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+}

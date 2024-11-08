@@ -1,0 +1,459 @@
+﻿@page "/os/edit/{Id:int}"
+@inject IOSService _service
+@inject IProductService _productService
+@inject NavigationManager _navigation
+@inject AlertService _alertService
+
+
+<Alert />
+
+<PageTitle>Pedido - Atualização</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-1" Style="width: 100%;">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Atualizar Ordem de Serviço | Pedido: @orderNumber</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudTooltip Text="Imprimir">
+                    <MudIconButton Icon="@Icons.Material.Filled.Print" Color="Color.Tertiary" Variant="Variant.Filled" OnClick="PrintOrderService" />
+                </MudTooltip>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="()=> Update()">
+                    Salvar
+                </MudButton>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudPaper Elevation="1" Class="pa-6" Style="background-color: #fefefe;">
+                <MudGrid>
+                    <MudItem xs="12" sm="4">
+                        <MudTextField Label="Operador Responsável" @bind-Value="os.Operator" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudTextField Label="Quantidade" @bind-Value="os.Quantity" ReadOnly="true" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudSelect T="OSStatus" Label="Status" @bind-Value="os.Status">
+                            @foreach (var status in Enum.GetValues(typeof(OSStatus)).Cast<OSStatus>())
+                            {
+                                <MudSelectItem Value="status">@status.GetEnumDescription()</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudTextField Label="Quantidade de Rolos (Kg)" @bind-Value="os.RollQuantityKg" ReadOnly="true" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudTextField Label="Quantidade de Rolos (Metros)" @bind-Value="os.RollQuantityMeters" ReadOnly="true" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudTextField Label="Observações" @bind-Value="os.Observation" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudDatePicker Label="Data de Início da Produção" @bind-Date="os.ProductionStartDate" Editable="false" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudDatePicker Label="Data de Término da Produção" @bind-Date="os.ProductionEndDate" Editable="true" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudDatePicker Label="Prazo de Entrega" @bind-Date="os.DeliveryDeadline" Editable="false" />
+                    </MudItem>
+                    <MudItem xs="12" sm="12">
+                        <MudImage Src=@($"images/{(int)os.LabelOrientation}.png") Alt=@($"Orientação {(int)os.LabelOrientation}") Width="61" Height="87" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudExpansionPanels>
+                            <MudExpansionPanel Text="Set Up de Máquina" Expanded="false" Gutters="false">
+                                <MudGrid>
+                                    <MudItem xs="6" sm="3">
+                                        <MudCheckBox Label="Adesão da Tinta OK" @bind-Value="os.Machine.InkAdherenceOk" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="9">
+                                        <MudTextField Label="Motivo Adesão da Tinta NOK" @bind-Value="os.Machine.InkAdherenceReason" />
+                                    </MudItem>
+
+                                    <MudItem xs="6" sm="3">
+                                        <MudCheckBox Label="Cor OK" @bind-Value="os.Machine.ColorOk" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="9">
+                                        <MudTextField Label="Motivo Cor NOK" @bind-Value="os.Machine.ColorReason" />
+                                    </MudItem>
+
+                                    <MudItem xs="6" sm="3">
+                                        <MudCheckBox Label="Texto Legível OK" @bind-Value="os.Machine.LegibleTextOk" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="9">
+                                        <MudTextField Label="Motivo Texto Legível NOK" @bind-Value="os.Machine.LegibleTextReason" />
+                                    </MudItem>
+
+                                    <MudItem xs="6" sm="3">
+                                        <MudCheckBox Label="Corte OK" @bind-Value="os.Machine.CutOk" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="9">
+                                        <MudTextField Label="Motivo Corte NOK" @bind-Value="os.Machine.CutReason" />
+                                    </MudItem>
+
+                                    <MudItem xs="6" sm="3">
+                                        <MudCheckBox Label="Aspecto Geral OK" @bind-Value="os.Machine.GeneralAspectOk" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="9">
+                                        <MudTextField Label="Motivo Aspecto Geral NOK" @bind-Value="os.Machine.GeneralAspectReason" />
+                                    </MudItem>
+
+                                    <MudItem xs="12" sm="6">
+                                        <MudTextField Label="Largura de Corte de Papel" @bind-Value="os.Machine.PaperCutWidth" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudTextField Label="Quantidade de Papel Usado" @bind-Value="os.Machine.PaperQtdUsed" />
+                                    </MudItem>
+                                </MudGrid>
+                            </MudExpansionPanel>
+                            <MudExpansionPanel Text="Rebobinação" Expanded="false" Gutters="false">
+                                <MudGrid>
+                                    <MudItem xs="12" sm="3">
+                                        <MudSelect T="int" Label="Produto" @bind-Value="rewinding.ProductId" Required>
+                                            @foreach (var product in products)
+                                            {
+                                                <MudSelectItem Value="product.Id">@product.Description</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="3">
+                                        <MudTextField Label="Revisado por" @bind-Value="rewinding.ReviewedBy" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="2">
+                                        <MudTextField Label="Quantidade de Rolos" @bind-Value="rewinding.RollQuantity" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="2">
+                                        <MudTextField Label="Quantidade de Caixas" @bind-Value="rewinding.BoxQuantity" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="2" Class="d-flex justify-end align-items-center">
+                                        <MudTooltip Text="Adicionar">
+                                            <MudIconButton placeHolder="Adicionar" Icon="@Icons.Material.Filled.Add" OnClick="() => AddRewinding(rewinding)" Color="Color.Success" Variant="Variant.Filled" Size="Size.Medium"></MudIconButton>
+                                        </MudTooltip>
+                                    </MudItem>
+                                    <MudItem sm="12" xs="3">
+                                        <MudTable Items="os.Rewindings"
+                                                  Elevation="1"
+                                                  Hover="true"
+                                                  Dense="false"
+                                                  Bordered="true"
+                                                  Style="background-color: #fefefe;"
+                                                  Breakpoint="Breakpoint.Sm">
+                                            <HeaderContent>
+                                                <MudTh>Produto</MudTh>
+                                                <MudTh>Revisado por</MudTh>
+                                                <MudTh>Quantidade (Rolos) </MudTh>
+                                                <MudTh>Quantidade (Caixas)</MudTh>
+                                                @* <MudTh>Início</MudTh>
+                                                <MudTh>Fim</MudTh> *@
+                                                <MudTh>Ações</MudTh>
+                                            </HeaderContent>
+                                            <RowTemplate>
+                                                <MudTd>@context.Product.Description</MudTd>
+                                                <MudTd>@context.ReviewedBy</MudTd>
+                                                <MudTd>@context.RollQuantity</MudTd>
+                                                <MudTd>@context.BoxQuantity</MudTd>
+                                                @* <MudTd>@context.StartDate?.ToString("dd/MM/yyyy")</MudTd>
+                                                <MudTd>@context.EndDate?.ToString("dd/MM/yyyy")</MudTd> *@
+                                                <MudTd>
+                                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                                   Color="Color.Error"
+                                                                   Variant="Variant.Filled"
+                                                                   Size="Size.Small"
+                                                                   OnClick="@(() => DelRewinding(context))"
+                                                                   aria-label="Remover Item" />
+                                                </MudTd>
+                                            </RowTemplate>
+                                        </MudTable>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudExpansionPanel>
+                            <MudExpansionPanel Text="Mistura de Tintas" Expanded="false" Gutters="false">
+                                <MudGrid>
+                                    <MudItem xs="12" sm="3">
+                                        <MudTextField Label="Nome da Tinta/Pantone" @bind-Value="inkMix.InkNamePantone" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="3">
+                                        <MudTextField Label="Lote Utilizado" @bind-Value="inkMix.LotUsed" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="2">
+                                        <MudTextField Label="Porcentagem" @bind-Value="inkMix.Percentage" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="2">
+                                        <MudTextField Label="Lote Final" @bind-Value="inkMix.FinalLot" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="2" Class="d-flex justify-end align-items-center">
+                                        <MudTooltip Text="Adicionar">
+                                            <MudIconButton placeHolder="Adicionar" Icon="@Icons.Material.Filled.Add" OnClick="() => AddInkMix(inkMix)" Color="Color.Success" Variant="Variant.Filled" Size="Size.Medium"></MudIconButton>
+                                        </MudTooltip>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="12">
+                                        <MudTable Items="os.InkMixs" Elevation="1"
+                                                  Hover="true"
+                                                  Dense="false"
+                                                  Bordered="true"
+                                                  Style="background-color: #fefefe;"
+                                                  Breakpoint="Breakpoint.Sm">
+                                            <HeaderContent>
+                                                <MudTh>Nome da Tinta/Pantone</MudTh>
+                                                <MudTh>Lote Utilizado</MudTh>
+                                                <MudTh>Porcentagem</MudTh>
+                                                <MudTh>Lote Final</MudTh>
+                                            </HeaderContent>
+                                            <RowTemplate>
+                                                <MudTd>@context.InkNamePantone</MudTd>
+                                                <MudTd>@context.LotUsed</MudTd>
+                                                <MudTd>@context.Percentage</MudTd>
+                                                <MudTd>@context.FinalLot</MudTd>
+                                                <MudTd>
+                                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                                   Color="Color.Error"
+                                                                   Size="Size.Small"
+                                                                   Variant="Variant.Filled"
+                                                                   OnClick="@(() => DelInkMix(context))"
+                                                                   aria-label="Remover Item" />
+                                                </MudTd>
+                                            </RowTemplate>
+                                        </MudTable>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudExpansionPanel>
+                            <MudExpansionPanel Text="Rastreabilidade" Expanded="false" Gutters="false">
+                                <MudGrid>
+                                    <MudItem xs="12" sm="3">
+                                        <MudTextField Label="Matéria Prima/Tinta" @bind-Value="traceability.RawMaterialInk" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="3">
+                                        <MudTextField Label="Lote n°" @bind-Value="traceability.Lot" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="3">
+                                        <MudTextField Label="Quantidade" @bind-Value="traceability.Quantity" />
+                                    </MudItem>
+                                    <MudItem xs="2" sm="3" Class="d-flex justify-end align-items-center">
+                                        <MudTooltip Text="Adicionar">
+                                            <MudIconButton placeHolder="Adicionar" Icon="@Icons.Material.Filled.Add" OnClick="() => AddTraceability(traceability)" Color="Color.Success" Variant="Variant.Filled" Size="Size.Medium"></MudIconButton>
+                                        </MudTooltip>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="12">
+                                        <MudTable Items="os.Traceabilitys" Elevation="1"
+                                                  Hover="true"
+                                                  Dense="false"
+                                                  Bordered="true"
+                                                  Style="background-color: #fefefe;"
+                                                  Breakpoint="Breakpoint.Sm">
+                                            <HeaderContent>
+                                                <MudTh>Matéria Prima/Tinta</MudTh>
+                                                <MudTh Quantifier="Align.Center">Lote n°</MudTh>
+                                                <MudTh Quantifier="Align.Center">Quantidade</MudTh>
+                                                <MudTh>Ações</MudTh>
+                                            </HeaderContent>
+                                            <RowTemplate>
+                                                <MudTd>@context.RawMaterialInk</MudTd>
+                                                <MudTd>@context.Lot</MudTd>
+                                                <MudTd>@context.Quantity</MudTd>
+                                                <MudTd>
+                                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                                   Color="Color.Error"
+                                                                   Size="Size.Small"
+                                                                   Variant="Variant.Filled"
+                                                                   OnClick="@(() => DelTraceability(context))"
+                                                                   aria-label="Remover Item" />
+                                                </MudTd>
+                                            </RowTemplate>
+                                        </MudTable>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudExpansionPanel>
+                            <MudExpansionPanel Text="Anilox" Expanded="false" Gutters="false">
+                                <MudGrid>
+                                    <MudItem xs="6" sm="2">
+                                        <MudTextField Label="Anilox" @bind-Value="Anilox.Number" />
+                                    </MudItem>
+                                    <MudItem xs="6" sm="2">
+                                        <MudTextField Label="Pantone" @bind-Value="Anilox.Pantone" />
+                                    </MudItem>
+                                    <MudItem xs="6" sm="2">
+                                        <MudTextField Label="Cromia" @bind-Value="Anilox.Cromia" />
+                                    </MudItem>
+                                    <MudItem xs="6" sm="2">
+                                        <MudTextField Label="BCM" @bind-Value="Anilox.BCM" />
+                                    </MudItem>
+                                    <MudItem xs="6" sm="2">
+                                        <MudTextField Label="Linhas" @bind-Value="Anilox.Lines" />
+                                    </MudItem>
+                                    <MudItem xs="6" sm="2" Class="d-flex justify-end align-items-center">
+                                        <MudTooltip Text="Adicionar">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="() => AddAnilox(Anilox)" Color="Color.Success" Variant="Variant.Filled" Size="Size.Medium"></MudIconButton>
+                                        </MudTooltip>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="12">
+                                        <MudTable Items="os.Aniloxs" Elevation="1"
+                                                  Hover="true"
+                                                  Dense="false"
+                                                  Bordered="true"
+                                                  Style="background-color: #fefefe;"
+                                                  Breakpoint="Breakpoint.Sm">
+                                            <HeaderContent>
+                                                <MudTh>Anilox</MudTh>
+                                                <MudTh>Pantone</MudTh>
+                                                <MudTh>Cromia</MudTh>
+                                                <MudTh>BCM</MudTh>
+                                                <MudTh>Linhas</MudTh>
+                                                <MudTh>Ações</MudTh>
+                                            </HeaderContent>
+                                            <RowTemplate>
+                                                <MudTd>@context.Number</MudTd>
+                                                <MudTd>@context.Pantone</MudTd>
+                                                <MudTd>@context.Cromia</MudTd>
+                                                <MudTd>@context.BCM</MudTd>
+                                                <MudTd>@context.Lines</MudTd>
+                                                <MudTd>
+                                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                                   Color="Color.Error"
+                                                                   Size="Size.Small"
+                                                                   Variant="Variant.Filled"
+                                                                   OnClick="@(() => DelAnilox(context))"
+                                                                   aria-label="Remover Item" />
+                                                </MudTd>
+                                            </RowTemplate>
+                                        </MudTable>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudExpansionPanel>
+                        </MudExpansionPanels>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudCardContent>
+    </MudPaper>
+</MudContainer>
+
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private string orderNumber { get; set; }
+    private OS os = new OS();
+    private InkMix inkMix = new InkMix();
+    private Rewinding rewinding = new Rewinding();
+    private Traceability traceability = new Traceability();
+    private Anilox Anilox = new Anilox();
+    private List<Product> products = new List<Product>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            os = await _service.Get(Id);
+            if (os.ProductionEndDate == null)
+                os.ProductionEndDate = DateTime.Now;
+
+            orderNumber = os.Order.OrderNumber.ToString();
+            products = await _productService.Get();
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+            _navigation.NavigateTo("/os");
+        }
+    }
+    private void PrintOrderService()
+    {
+        // Aqui você pode definir a lógica para impressão.
+        // Dependendo de como sua aplicação deve funcionar, pode ser redirecionamento
+        // para uma página de impressão ou gerar um PDF.
+        Console.WriteLine("Print OS function called");
+    }
+    private async Task Update()
+    {
+        try
+        {
+            await _service.Update(os);
+
+            await InvokeAsync(() => { _alertService.ShowAlert($"Ordem de Serviço n°{os.Id} atualizada com sucesso!", Severity.Success); });
+
+            await Task.Delay(1000);
+            _navigation.NavigateTo("/os");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+    private async Task AddInkMix(InkMix obj)
+    {
+        if (!string.IsNullOrWhiteSpace(obj.InkNamePantone) &&
+            !string.IsNullOrWhiteSpace(obj.LotUsed) &&
+            !string.IsNullOrWhiteSpace(obj.Percentage) &&
+            !string.IsNullOrWhiteSpace(obj.FinalLot))
+        {
+            obj.OrderServiceId = os.Id;
+            os.InkMixs.Add(obj);
+            inkMix = new InkMix();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    private async Task DelInkMix(InkMix obj)
+    {
+        os.InkMixs.Remove(obj);
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task AddRewinding(Rewinding obj)
+    {
+        if (!string.IsNullOrWhiteSpace(obj.ReviewedBy) &&
+            !string.IsNullOrWhiteSpace(obj.RollQuantity) &&
+            !string.IsNullOrWhiteSpace(obj.BoxQuantity) &&
+            obj.ProductId > 0)
+        {
+            obj.Product = products.FirstOrDefault(f => f.Id == obj.ProductId);
+            obj.OrderServiceId = os.Id;
+            os.Rewindings.Add(obj);
+            rewinding = new Rewinding();
+
+            products.Remove(obj.Product);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    private async Task DelRewinding(Rewinding obj)
+    {
+        products.Add(obj.Product);
+        os.Rewindings.Remove(obj);
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task AddTraceability(Traceability obj)
+    {
+        if (!string.IsNullOrWhiteSpace(obj.RawMaterialInk) && !string.IsNullOrWhiteSpace(obj.Lot) && obj.Quantity > 0)
+        {
+            obj.OrderServiceId = os.Id;
+            os.Traceabilitys.Add(obj);
+            traceability = new();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    private async Task DelTraceability(Traceability obj)
+    {
+        os.Traceabilitys.Remove(obj);
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task AddAnilox(Anilox obj)
+    {
+        if (obj.Number > 0 &&
+            !string.IsNullOrWhiteSpace(obj.Pantone) &&
+            !string.IsNullOrWhiteSpace(obj.BCM) &&
+            !string.IsNullOrWhiteSpace(obj.Lines.ToString()))
+        {
+            obj.OrderServiceId = os.Id;
+            os.Aniloxs.Add(obj);
+            Anilox = new Anilox();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    private async Task DelAnilox(Anilox obj)
+    {
+        os.Aniloxs.Remove(obj);
+        await InvokeAsync(StateHasChanged);
+    }
+}

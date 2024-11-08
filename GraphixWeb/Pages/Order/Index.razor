@@ -1,0 +1,357 @@
+﻿@page "/order"
+@inject NavigationManager _navigation
+@inject IOrderService _service
+@inject AlertService _alertService
+@inject IJSRuntime _js
+
+<Alert />
+
+<PageTitle>Pedidos</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-3" Style="width: 100%;">
+        <MudGrid>
+            <MudItem xs="12" class="d-flex justify-start mb-3">
+                <MudText Typo="Typo.h6">Pedidos</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="searchString"
+                              Placeholder="Pesquisar pedidos..."
+                              Adornment="Adornment.Start"
+                              AdornmentColor="Color.Primary"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Immediate="true"
+                              DebounceInterval="300" />
+            </MudItem>
+        </MudGrid>
+        <MudTable Items="@filteredOrders"
+                  Filter="FilterFunc"
+                  @bind-CurrentPage="currentPage"
+                  @bind-RowsPerPage="rowsPerPage"
+                  RowsPerPageOptions="rowsPerPageOptions"
+                  Elevation="1"
+                  Hover="true"
+                  Dense="false"
+                  Bordered="true"
+                  Style="background-color: #fefefe;"
+                  Breakpoint="Breakpoint.Sm"
+                  Loading="@loading"
+                  LoadingProgressColor="Color.Primary">
+            <HeaderContent>
+                <MudTh>Cliente</MudTh>
+                <MudTh>Nº do Pedido</MudTh>
+                <MudTh>Total</MudTh>
+                <MudTh>Prazo de Entrega</MudTh>
+                <MudTh>Data de Criação</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh Class="d-flex justify-end">
+                    <MudTooltip Text="Exportar">
+                        <MudIconButton Icon="@Icons.Material.Filled.SystemUpdateAlt"
+                                       Color="Color.Success"
+                                       Variant="Variant.Filled"
+                                       Size="Size.Small"
+                                       OnClick="() => DownloadReport()" />
+                    </MudTooltip>
+                </MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Cliente">@context.Customer.CorporateName</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Nº do Pedido">@context.OrderNumber</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Total">@context.Total.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Prazo de entrega">@context.DeliveryDeadline?.ToString("dd/MM/yyyy")</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Data de criação">@context.CreatedAt?.ToString("dd/MM/yyyy")</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Status">@context.Status.GetEnumDescription()</MudTd>
+                <MudTd>
+                    <MudText StartIcon="@((context.ShowDetails) ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"></MudText>
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.TopRight">
+                        <MudMenuItem OnClick="@(() => OpenDialog(context))">
+                            <MudText StartIcon="@((context.ShowDetails) ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)">Detalhes</MudText>
+                        </MudMenuItem>
+                        <MudMenuItem Href="@($"/order/edit/{context.Id}")">
+                            <MudText StartIcon="@Icons.Material.Filled.Edit">Editar</MudText>
+                        </MudMenuItem>
+                        @* <MudMenuItem OnClick="() => Delete(context)">
+                        <MudText StartIcon="@Icons.Material.Filled.Delete">Excluir</MudText>
+                        </MudMenuItem> *@
+                        <MudMenuItem OnClick="() => NewOS(context)">
+                            <MudText StartIcon="@Icons.Material.Filled.Add">Criar OS</MudText>
+                        </MudMenuItem>
+                        <MudMenuItem OnClick="() => DownloadOrder(context)">
+                            <MudText StartIcon="@Icons.Material.Filled.Download">Imprimir</MudText>
+                        </MudMenuItem>
+                    </MudMenu>
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager RowsPerPageString="Pedidos Por Página" />
+            </PagerContent>
+        </MudTable>
+    </MudPaper>
+    <MudDialog @bind-Visible="_visible" Options="_dialogOptions" MaxWidth="MaxWidth.Large" FullWidth="true">
+        <DialogContent>
+            <MudExpansionPanels>
+                <MudExpansionPanel Text="Detalhes Pedido" Expanded="true" Gutters="true">
+                    <MudGrid>
+                        <MudItem xs="12" sm="3">
+                            <MudTextField Label="Condição de Pagamento" @bind-Value="selectedOrderDetail.Observation" ReadOnly="true" />
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudTextField Label="Total" @bind-Value="selectedOrderDetail.Total" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) ReadOnly="true" />
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudTextField Label="Frete" @bind-Value="selectedOrderDetail.Freight" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) ReadOnly="true" />
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudCheckBox @bind-Value="selectedOrderDetail.FOB" Label="FOB" Size="Size.Small" Color="Color.Primary" ReadOnly="true"></MudCheckBox>
+                        </MudItem>
+                        <MudItem xs="12" sm="12">
+                            <MudTextField Label="Observações" @bind-Value="selectedOrderDetail.Observation" ReadOnly="true" />
+                        </MudItem>
+                    </MudGrid>
+                </MudExpansionPanel>
+                <MudExpansionPanel Text="Produtos" Expanded="true" Gutters="true">
+                    <MudTable Items="selectedOrderDetail.Items" Hover="true" Breakpoint="Breakpoint.Sm" Striped="true">
+                        <HeaderContent>
+                            <MudTh>Quantidade</MudTh>
+                            <MudTh>Total</MudTh>
+                            <MudTh>Acabamento</MudTh>
+                            <MudTh>Cor</MudTh>
+                            <MudTh>Dimensão</MudTh>
+                            <MudTh>Faca</MudTh>
+                            <MudTh>Tubete</MudTh>
+                            <MudTh>Material</MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="item">
+                            <MudTd DataLabel="Quantidade">@item.Quantity</MudTd>
+                            <MudTd DataLabel="Total">@item.Total.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</MudTd>
+                            <MudTd DataLabel="Tamanho">@item.Product.Finish</MudTd>
+                            <MudTd DataLabel="Cor">@item.Product.Color</MudTd>
+                            <MudTd DataLabel="Dimensão">@item.Product.Dimension</MudTd>
+                            <MudTd DataLabel="Faca">@item.Product.Knife</MudTd>
+                            <MudTd DataLabel="Tubete">@item.Product.Tubet</MudTd>
+                            <MudTd DataLabel="Material">@item.Product.Material</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </DialogContent>
+        <DialogActions>
+            <MudSpacer />
+        </DialogActions>
+    </MudDialog>
+
+    <MudTooltip Text="Criar Novo Pedido">
+        <MudFab StartIcon="@Icons.Material.Filled.Add"
+                Color="Color.Primary"
+                IconColor="Color.Secondary"
+                Size="Size.Medium"
+                Style="position: fixed; right: 30px; bottom: 30px;"
+                Href="/order/create" />
+    </MudTooltip>
+</MudContainer>
+
+
+
+@code {
+    [Inject] private IDialogService dialog { get; set; }
+    private List<Order> orders = new List<Order>();
+    private List<Order> filteredOrders = new();
+    private Order selectedOrderDetail = new();
+
+    private bool loading;
+    private string searchString = "";
+
+    private int currentPage;
+    private int rowsPerPage = 20;
+    private int[] rowsPerPageOptions = new[] { 5, 10, 20 };
+
+    private readonly DialogOptions _dialogOptions = new() { CloseButton = true, FullWidth = true, MaxWidth = MaxWidth.Large };
+    private bool _visible = false;
+
+
+    private bool FilterFunc(Order order)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        // Converter campos numéricos e enums para string
+        string orderNumberStr = order.OrderNumber.ToString();
+        string customerIdStr = order.CustomerId.ToString();
+        string accountIdStr = order.AccountId.ToString();
+        string totalStr = order.Total.ToString("F2"); // Formatação com 2 casas decimais
+        string statusStr = order.Status.ToString();
+
+        // Verificar cada campo com segurança contra nulos
+        if (orderNumberStr.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (customerIdStr.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (accountIdStr.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (totalStr.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (!string.IsNullOrWhiteSpace(order.Observation) &&
+            order.Observation.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (!string.IsNullOrWhiteSpace(order.PaymentCondition) &&
+            order.PaymentCondition.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (order.DeliveryDeadline.HasValue)
+        {
+            string deliveryDeadlineStr = order.DeliveryDeadline.Value.ToString("dd/MM/yyyy");
+            if (deliveryDeadlineStr.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        // Verificar campos de objetos relacionados
+        if (order.Account != null &&
+            !string.IsNullOrWhiteSpace(order.Account.CorporateName) && // Supondo que exista o campo Name
+            order.Account.CorporateName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (order.Customer != null &&
+            !string.IsNullOrWhiteSpace(order.Customer.CorporateName) &&
+            order.Customer.CorporateName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+    private async Task OpenDialog(Order obj)
+    {
+        selectedOrderDetail = obj;
+        _visible = true;
+    }
+    private void OnSearch(string text)
+    {
+        searchString = text;
+        filteredOrders = orders.Where(FilterFunc).ToList();
+        currentPage = 0; // Resetar para a primeira página após a busca
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            loading = true;
+            await InvokeAsync(StateHasChanged);
+            orders = await _service.Get();
+            filteredOrders = orders;
+            loading = false;
+            await InvokeAsync(StateHasChanged);
+
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+        }
+    }
+
+    private string GetRowStyle(Order order)
+    {
+        if (order.DeliveryDeadline.HasValue)
+        {
+            var daysLeft = (order.DeliveryDeadline.Value - DateTime.Now).TotalDays;
+
+            if (daysLeft < 0 && order.Status == OrderStatus.running)
+            {
+                // Prazo excedido - vermelho translúcido
+                return "background-color: rgba(255, 0, 0, 0.3); color: white;";
+            }
+            else if (daysLeft <= 3 && order.Status == OrderStatus.running)
+            {
+                // Menos de 3 dias - amarelo translúcido
+                return "background-color: rgba(255, 255, 0, 0.5); color: black;";
+            }
+        }
+        return ""; // Sem cor
+    }
+
+    private async Task Edit(Order obj)
+    {
+        try
+        {
+            _navigation.NavigateTo($"/os/edit/{obj.Id}");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); }); await Task.Delay(1000);
+        }
+    }
+
+    private async Task Delete(Order obj)
+    {
+        try
+        {
+            bool? result = await dialog.ShowMessageBox(
+            "Excluir",
+            $"Confirma a exclusão do pedido: {obj.OrderNumber}?",
+            yesText: "Sim", cancelText: "Não");
+            if (result != null && result == true)
+            {
+                await _service.Delete(obj.Id);
+
+                await InvokeAsync(() => { _alertService.ShowAlert("Pedido deletada com sucesso!", Severity.Success); });
+                await Task.Delay(1000);
+
+                await OnInitializedAsync();
+            }
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); }); await Task.Delay(1000);
+        }
+    }
+    private async Task NewOS(Order obj)
+    {
+        _navigation.NavigateTo($"/os/create/{obj.Id}");
+    }
+    private void ShowBtnPress(int id)
+    {
+        Order tempOrder = orders.First(f => f.Id == id);
+        tempOrder.ShowDetails = !tempOrder.ShowDetails;
+    }
+
+    private async Task DownloadReport()
+    {
+        try
+        {
+            var startDate = DateTime.Now.AddDays(-60).ToString("yyyy-MM-dd");
+            var endDate = DateTime.Now.ToString("yyyy-MM-dd");
+
+            var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            var fileName = "RelatórioPedidos.xlsx";
+            var fileBytes = await _service.Export(startDate, endDate);
+
+            await _js.InvokeVoidAsync("downloadFileFromBytes", fileName, contentType, fileBytes);
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); }); 
+            await Task.Delay(1000);
+        }
+    }
+    private async Task DownloadOrder(Order obj)
+    {
+        try
+        {
+            var fileBytes = await _service.Download(obj.Id);
+
+            var fileName = $"Pedido_{obj.OrderNumber}-{obj.Customer.CorporateName}.pdf";
+            var contentType = "application/pdf";
+
+            var base64 = Convert.ToBase64String(fileBytes);
+
+            await _js.InvokeVoidAsync("downloadFileFromBytes", fileName, contentType, fileBytes);
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+}

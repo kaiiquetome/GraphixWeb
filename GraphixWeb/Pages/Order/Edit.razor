@@ -1,0 +1,339 @@
+﻿@page "/order/edit/{id:int}"
+
+@inject NavigationManager _navigation
+@inject IOrderService _service
+@inject ICustomerService _customerService
+@inject IAccountService _accountService
+@inject IProductService _productService
+@inject AlertService _alertService
+@inject IDialogService _dialogService
+
+<Alert />
+
+<PageTitle>Pedido - Atualização</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-1" Style="width: 100%;">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Atualizar Pedido: @order.OrderNumber</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="()=> UpdateOrder()">
+                    Salvar
+                </MudButton>
+                @* <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="()=> RecalcTotal()">
+                    Recalcular Total
+                </MudButton> *@
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudPaper Elevation="1" Class="pa-6" Style="background-color: #fefefe;">
+                <EditForm Model="order" OnValidSubmit="UpdateOrder">
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect T="int" Label="Cliente" @bind-Value="order.CustomerId" Required>
+                                @foreach (var customer in customers)
+                                {
+                                    <MudSelectItem Value="customer.Id">@customer.CorporateName | @customer.Cnpj</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudDatePicker Label="Data de Entrega" @bind-Date="order.DeliveryDeadline" Editable="true" ShowToolbar="false" />
+                        </MudItem>
+                        <MudItem xs="12" sm="3" Class="d-flex justify-end">
+                            <MudSelect T="OrderStatus" Label="Status do Pedido" @bind-Value="order.Status">
+                                @foreach (var status in Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>())
+                                {
+                                    <MudSelectItem Value="status">@status.GetEnumDescription()</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudTextField Label="Condição de Pagamento" @bind-Value="order.PaymentCondition" />
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudTextField T="decimal" Label="Total" @bind-Value="order.Total" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) ReadOnly="true" />
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudTextField Label="Frete" @bind-Value="order.Freight" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+                        </MudItem>
+                        <MudItem xs="12" sm="3" >
+                            <MudCheckBox @bind-Value="order.FOB" Label="FOB" Size="Size.Small" Color="Color.Primary"></MudCheckBox>
+                        </MudItem>
+                        <MudItem xs="12" sm="12">
+                            <MudTextField Label="Observações" @bind-Value="order.Observation" />
+                        </MudItem>
+                    </MudGrid>
+                </EditForm>
+            </MudPaper>
+        </MudCardContent>
+    </MudPaper>
+    <br />
+    <MudCard>
+        <MudPaper Elevation="1" Class="pa-3" Style="width: 100%;">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Itens do Pedido</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudIconButton Icon="@Icons.Material.Filled.Add" ButtonType="ButtonType.Submit" OnClick="@(() => OpenDialog())" Variant="Variant.Filled" Color="Color.Success" />
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudPaper Elevation="1" Class="pa-6" Style="background-color: #fefefe;">
+                <MudCardContent>
+                    <MudTable Items="order.Items" Bordered="true" Striped="true" Hover="true" Class="mt-1">
+                        <HeaderContent>
+                            <MudTh>Descrição do Produto</MudTh>
+                            <MudTh Quantifier="Align.Center">Quantidade</MudTh>
+                            <MudTh Quantifier="Align.Center">Total</MudTh>
+                            <MudTh>Ações</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context.Product.Description</MudTd>
+                            <MudTd>
+                                <MudNumericField @bind-Value="context.Quantity"
+                                                 Min="1"
+                                                 Immediate="true"
+                                                 Label="Quantidade" />
+                            </MudTd>
+                            <MudTd>
+                                <MudTextField T="decimal" Label="Total" @bind-Value="@context.Total" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+                            </MudTd>
+                            <MudTd>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               Variant="Variant.Outlined"
+                                               Size="Size.Small"
+                                               OnClick="@(() => RemoveOrderItem(context))"
+                                               aria-label="Remover Item" />
+                            </MudTd>
+                        </RowTemplate>
+
+                    </MudTable>
+
+                </MudCardContent>
+            </MudPaper>
+        </MudPaper>
+    </MudCard>
+</MudContainer>
+
+<MudDialog @bind-Visible="_visible" Options="_dialogOptions">
+    <TitleContent>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="12" Class="d-flex align-center mb-3">
+                <MudTextField @bind-Value="searchString"
+                              Placeholder="Pesquisar produtos..."
+                              Adornment="Adornment.Start"
+                              AdornmentColor="Color.Primary"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Immediate="true"
+                              DebounceInterval="300"
+                              Variant="Variant.Outlined" />
+            </MudItem>
+            <MudItem xs="12" sm="12">
+                <MudTable T="Product"
+                          @bind-SelectedItems="selectedProducts"
+                          Items="filteredProducts"
+                          MultiSelection="true"
+                          SelectionChangeable="true"
+                          Hover="true"
+                          SelectOnRowClick="true"
+                          Filter="FilterFunc"
+                          Loading="loading"
+                          LoadingProgressColor="Color.Primary"
+                          SortLabel="Ordenar"
+                          CurrentPage="@currentPage"
+                          RowsPerPage="@rowsPerPage"
+                          RowsPerPageOptions="@rowsPerPageOptions"
+                          Breakpoint="Breakpoint.Sm"
+                          Bordered="true">
+                    <HeaderContent>
+                        <MudTh DataLabel="Descrição" SortLabel="Description">Descrição</MudTh>
+                        <MudTh DataLabel="Tamanho" SortLabel="Size">Tamanho</MudTh>
+                        <MudTh DataLabel="Cor" SortLabel="Color">Cor</MudTh>
+                        <MudTh DataLabel="Dimensão" SortLabel="Dimension">Dimensão</MudTh>
+                        <MudTh DataLabel="Faca" SortLabel="Knife">Faca</MudTh>
+                        <MudTh DataLabel="Tubete" SortLabel="Tubet">Tubete</MudTh>
+                        <MudTh DataLabel="Material" SortLabel="Material">Material</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Descrição">@context.Description</MudTd>
+                        <MudTd DataLabel="Tamanho">@context.Finish</MudTd>
+                        <MudTd DataLabel="Cor">@context.Color</MudTd>
+                        <MudTd DataLabel="Dimensão">@context.Dimension</MudTd>
+                        <MudTd DataLabel="Faca">@context.Knife</MudTd>
+                        <MudTd DataLabel="Tubete">@context.Tubet</MudTd>
+                        <MudTd DataLabel="Material">@context.Material</MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager RowsPerPageString="Produtos por página" />
+                    </PagerContent>
+                </MudTable>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudSpacer />
+        <MudButton Class="mt-3 mb-3" OnClick="() => AddItems(selectedProducts)" Variant="Variant.Filled" Color="Color.Primary">Incluir</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public int id { get; set; }
+    private Order order = new Order();
+
+    private bool loading = false;
+
+    private List<Customer> customers = new();
+    private List<Account> accounts = new();
+    private List<Product> products = new();
+    private List<Product> filteredProducts = new();
+    private string searchString = "";
+
+    private int currentPage = 0;
+    private int rowsPerPage = 20;
+    private readonly int[] rowsPerPageOptions = { 5, 10, 20 };
+
+    private HashSet<Product> selectedProducts = new();
+    private bool selectAll = false;
+
+    private readonly DialogOptions _dialogOptions = new() { CloseButton = true, FullWidth = true, MaxWidth = MaxWidth.Large };
+    private bool _visible = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            loading = true;
+            await InvokeAsync(StateHasChanged);
+
+            order = await _service.Get(id);
+            customers = await _customerService.Get();
+            accounts = await _accountService.Get();
+            products = await _productService.Get();
+            filteredProducts = products;
+
+            foreach (var item in order.Items)
+            {
+                selectedProducts.Add(item.Product);
+                filteredProducts.Remove(item.Product);
+            }
+
+            loading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+
+    private async Task UpdateOrder()
+    {
+        try
+        {
+            foreach (var item in order.Items)
+            {
+                item.OrderId = order.Id;
+            }
+            await RecalcTotal();
+            await _service.Update(order);
+
+            await InvokeAsync(() => { _alertService.ShowAlert("Pedido atualizado com sucesso!", Severity.Success); });
+            await Task.Delay(1000);
+
+            _navigation.NavigateTo("/order");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+    private async Task OpenDialog()
+    {
+        _visible = true;
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task AddItems(HashSet<Product> items)
+    {
+        foreach (var item in items)
+        {
+            if (!order.Items.Any(f => f.ProductId == item.Id))
+                order.Items.Add(new OrderItem { Product = item, ProductId = item.Id });
+        }
+        _visible = false;
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task RemoveOrderItem(OrderItem orderItem)
+    {
+        order.Items.Remove(orderItem);
+        selectedProducts.Remove(orderItem.Product);
+    }
+    private bool FilterFunc(Product product)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        return product.Id.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+               (product.Description?.Contains(searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+               (product.Color?.Contains(searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+               (product.Dimension?.Contains(searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+               (product.Knife?.Contains(searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+               (product.Tubet?.Contains(searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+               (product.Material?.Contains(searchString, StringComparison.OrdinalIgnoreCase) ?? false);
+    }
+
+    private void ToggleSelection(Product product)
+    {
+        if (selectedProducts.Contains(product))
+            selectedProducts.Remove(product);
+        else
+            selectedProducts.Add(product);
+    }
+
+    private void ToggleSelectAll(ChangeEventArgs args)
+    {
+        selectAll = (bool)args.Value;
+        if (selectAll)
+            selectedProducts = new HashSet<Product>(filteredProducts);
+        else
+            selectedProducts.Clear();
+    }
+
+    private void SelectAllRows()
+    {
+        selectedProducts = new HashSet<Product>(filteredProducts);
+        selectAll = true;
+    }
+
+    private void DeselectAllRows()
+    {
+        selectedProducts.Clear();
+        selectAll = false;
+    }
+    private async Task RecalcTotal()
+    {
+        order.Total = 0;
+
+        if (order.FOB)
+            order.Total += order.Freight;
+
+        if (order.Items != null)
+        {
+            foreach (var item in order.Items)
+            {
+                if (item.Quantity > 0 && item.Total > 0)
+                    order.Total += item.Quantity * item.Total;
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
+    }
+}

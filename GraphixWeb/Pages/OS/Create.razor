@@ -1,0 +1,224 @@
+﻿@page "/os/create/{OrderId:int}"
+@inject NavigationManager _navigation
+@inject IOSService _osService
+@inject IOrderService _orderService
+@inject ICustomerService _customerService
+@inject IProductService _productService
+@inject IDialogService _dialogService
+@inject AlertService _alertService
+@inject IJSRuntime _js
+
+<PageTitle>Nova Ordem de Serviço</PageTitle>
+
+<Alert />
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-1" Style="width: 100%;">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Nova Ordem de Serviço | Pedido: @order.OrderNumber</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="()=> CreateOrderService()">
+                    Salvar
+                </MudButton>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudPaper Elevation="1" Class="pa-6" Style="background-color: #fefefe;">
+                <EditForm Model="@orderService" OnValidSubmit="CreateOrderService">
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudDatePicker Label="Data de Início da Produção" Editable="true" @bind-Date="orderService.ProductionStartDate" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudDatePicker Label="Prazo de Entrega" Editable="true" @bind-Date="orderService.DeliveryDeadline" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Quantidade do Pedido" @bind-Value="orderService.Quantity" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Quantidade de Rolos (Kg)" @bind-Value="orderService.RollQuantityKg" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Quantidade de Rolos (Metros)" @bind-Value="orderService.RollQuantityMeters" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="Observações" @bind-Value="orderService.Observation" />
+                        </MudItem>
+                        <MudItem xs="12" sm="12">
+                            <MudRadioGroup T="LabelOrientation" @bind-Value="orderService.LabelOrientation">
+                                @foreach (var orientation in Enum.GetValues(typeof(LabelOrientation)).Cast<LabelOrientation>())
+                                {
+                                    <MudRadio Value="orientation">
+                                        <MudImage Src=@($"images/{(int)orientation}.png") Alt=@($"Orientation {(int)orientation}") Width="61" Height="87" />
+                                    </MudRadio>
+                                }
+                            </MudRadioGroup>
+                        </MudItem>
+                    </MudGrid>
+                </EditForm>
+            </MudPaper>
+        </MudCardContent>
+    </MudPaper>
+    <br />
+    <MudPaper Elevation="1" Class="pa-1" Style="width: 100%;">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Rastreabilidade</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="() => AddTranceability(traceability)" Color="Color.Success" Variant="Variant.Filled" Size="Size.Medium"></MudIconButton>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudPaper Elevation="1" Class="pa-6" Style="background-color: #fefefe;">
+                <MudGrid>
+                    <MudItem xs="6" sm="6">
+                        <MudTextField Label="Matéria Prima/Tinta" @bind-Value="traceability.RawMaterialInk" />
+                    </MudItem>
+                    <MudItem xs="6" sm="4">
+                        <MudTextField Label="Lote n°" @bind-Value="traceability.Lot" />
+                    </MudItem>
+                    <MudItem xs="6" sm="2">
+                        <MudTextField Label="Quantidade" @bind-Value="traceability.Quantity" />
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudCardContent>
+        <MudCardContent>
+            <MudPaper Elevation="1" Class="pa-6" Style="background-color: #fefefe;">
+                <MudTable Items="@listTraceability" Hover="true" Breakpoint="Breakpoint.Sm" LoadingProgressColor="Color.Primary">
+                    <HeaderContent>
+                        <MudTh>Matéria Prima/Tinta</MudTh>
+                        <MudTh>Lote n°</MudTh>
+                        <MudTh>Quantidade</MudTh>
+                        <MudTh>Ação</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Matéria Prima / tinta">@context.RawMaterialInk</MudTd>
+                        <MudTd DataLabel="Lote n?">@context.Lot</MudTd>
+                        <MudTd DataLabel="Quantidade">@context.Quantity</MudTd>
+                        <MudTd>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="() => DelTranceability(context)" Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
+        </MudCardContent>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public int OrderId { get; set; }
+
+    private Order order = new Order();
+    private OS orderService = new OS();
+    private Traceability traceability = new();
+    private List<Traceability> listTraceability = new();
+    private MudForm form;
+    private List<Customer> customers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            order = await _orderService.Get(OrderId);
+            if (order != null)
+            {
+                orderService.OrderId = OrderId;
+                orderService.CustomerId = order.CustomerId;
+                orderService.DeliveryDeadline = order.DeliveryDeadline;
+                orderService.ProductionStartDate = DateTime.Today;
+            }
+            else
+            {
+                _navigation.NavigateTo("/orderservice");
+            }
+        }
+        catch (Exception ex)
+        {
+            _navigation.NavigateTo("/orderservice");
+        }
+    }
+    private void PrintOrderService()
+    {
+        // Aqui você pode definir a lógica para impressão.
+        // Dependendo de como sua aplicação deve funcionar, pode ser redirecionamento
+        // para uma página de impressão ou gerar um PDF.
+        Console.WriteLine("Print OS function called");
+    }
+    private async Task AddTranceability(Traceability obj)
+    {
+        if (!string.IsNullOrWhiteSpace(obj.RawMaterialInk) && !string.IsNullOrWhiteSpace(obj.Lot) && obj.Quantity > 0)
+        {
+            listTraceability.Add(obj);
+            traceability = new();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    private async Task DelTranceability(Traceability obj)
+    {
+        listTraceability.Remove(obj);
+        traceability = new();
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task CreateOrderService()
+    {
+        try
+        {
+            if (listTraceability.Count > 0)
+            {
+                orderService.Traceabilitys = listTraceability;
+
+                var response = await _osService.Create(orderService);
+
+                await InvokeAsync(() => { _alertService.ShowAlert($"OS: {response.Id} cadastrada com sucesso!", Severity.Success); });
+
+                await Task.Delay(1000);
+
+                var parameters = new DialogParameters { { "Message", "" } };
+                var options = new DialogOptions { CloseOnEscapeKey = true };
+                var dialog = _dialogService.Show<PrintDialog>($"Deseja fazer download da OS: {response.Id} ?", parameters, options);
+                var result = await dialog.Result;
+
+                if (!result.Canceled && result.Data is bool shouldPrint && shouldPrint)
+                {
+                    await DownloadOS(response);
+                }
+                _navigation.NavigateTo("/order");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000); // Pausa para o alerta de erro
+        }
+    }
+
+    private void Cancel()
+    {
+        _navigation.NavigateTo("/orderservice");
+    }
+    private async Task DownloadOS(OS obj)
+    {
+        try
+        {
+            var fileBytes = await _osService.Download(obj.Id);
+
+            var fileName = $"Ordem de Serviço_{obj.Id}.pdf";
+            var contentType = "application/pdf";
+
+            var base64 = Convert.ToBase64String(fileBytes);
+
+            await _js.InvokeVoidAsync("downloadFileFromBytes", fileName, contentType, fileBytes);
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+}

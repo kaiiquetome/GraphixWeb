@@ -1,0 +1,17 @@
+﻿<MudDialog MaxWidth="MaxWidth.ExtraSmall" FullWidth="true">
+    <DialogContent>
+        <MudText Align="Align.Center">@Message</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => MudDialog.Cancel()" Color="Color.Error" Variant="Variant.Filled"> Não </MudButton>
+        <MudSpacer/>
+        <MudButton OnClick="() => MudDialog.Close(DialogResult.Ok(true))" Color="Color.Success" Variant="Variant.Filled"> Sim </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public string Message { get; set; }
+}

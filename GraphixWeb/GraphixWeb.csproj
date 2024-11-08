@@ -10,6 +10,17 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.2" PrivateAssets="all" />
     <PackageReference Include="MudBlazor" Version="7.15.0" />
+	<PackageReference Include="AutoMapper" Version="13.0.1" />
+	<PackageReference Include="BlazorInputMask" Version="1.0.24" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<Content Update="wwwroot/appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+	<Content Update="wwwroot\appsettings.Development.json">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</Content>
   </ItemGroup>
 
 </Project>

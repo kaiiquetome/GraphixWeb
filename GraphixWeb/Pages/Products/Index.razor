@@ -1,0 +1,165 @@
+﻿@page "/product"
+@inject IProductService _service
+@inject NavigationManager _navigation
+@inject AlertService _alertService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<Alert />
+
+<PageTitle>Produtos</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-3" Style="width: 100%;">
+        <MudGrid>
+            <MudItem xs="12" class="d-flex justify-start mb-3">
+                <MudText Typo="Typo.h6">Produtos</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="searchString"
+                            Placeholder="Pesquisar produtos..."
+                            Adornment="Adornment.Start"
+                            AdornmentColor="Color.Primary"
+                            AdornmentIcon="@Icons.Material.Filled.Search"
+                            Immediate="true"
+                            DebounceInterval="300" />
+            </MudItem>
+        </MudGrid>
+
+        <MudTable Elevation="1"
+                  Dense="false"
+                  Style="background-color: #fefefe;"
+                  Bordered="true"
+                  Items="filteredProducts"
+                  Filter="FilterFunc"
+                  Loading="@loading"
+                  LoadingProgressColor="Color.Primary"
+                  SortLabel="Ordenar"
+                  Breakpoint="Breakpoint.Sm"
+                  @bind-CurrentPage="currentPage"
+                  @bind-RowsPerPage="rowsPerPage"
+                  RowsPerPageOptions="rowsPerPageOptions">
+                <HeaderContent>
+                    <MudTh DataLabel="Descrição" SortLabel="Description">Descrição</MudTh>
+                    <MudTh DataLabel="Acabamento" SortLabel="Finish">Acabamento</MudTh>
+                    <MudTh DataLabel="Cor" SortLabel="Color">Cor</MudTh>
+                    <MudTh DataLabel="Dimensão" SortLabel="Dimension">Dimensão</MudTh>
+                    <MudTh DataLabel="Faca" SortLabel="Knife">Faca</MudTh>
+                    <MudTh DataLabel="Tubete" SortLabel="Tubet">Tubete</MudTh>                    
+                    <MudTh DataLabel="Material" SortLabel="Material">Material</MudTh>
+                    <MudTh DataLabel="Observações" SortLabel="Observation">Observações</MudTh>
+                    <MudTh>Ações</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Descrição">@context.Description</MudTd>
+                    <MudTd DataLabel="Acabamento">@context.Finish</MudTd>
+                    <MudTd DataLabel="Cor">@context.Color</MudTd>
+                    <MudTd DataLabel="Dimensão">@context.Dimension</MudTd>
+                    <MudTd DataLabel="Faca">@context.Knife</MudTd>
+                    <MudTd DataLabel="Tubete">@context.Tubet</MudTd>
+                    <MudTd DataLabel="Material">@context.Material</MudTd>                    
+                    <MudTd DataLabel="Observações">@context.Observation</MudTd>
+                    <MudTd>
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.TopRight">
+                        <MudMenuItem Href="@($"/product/form/{context.Id}")">
+                                <MudText StartIcon="@Icons.Material.Filled.Edit">Editar</MudText>
+                            </MudMenuItem>
+                            @* <MudMenuItem OnClick="() => DeleteProduct(context.Id)">
+                                <MudText StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Excluir</MudText>
+                            </MudMenuItem> *@
+                        </MudMenu>
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                <MudTablePager RowsPerPageString="Produtos Por Página" />
+                </PagerContent>
+            </MudTable>
+    </MudPaper>
+    <MudTooltip Text="Criar Novo Produto">
+        <MudFab StartIcon="@Icons.Material.Filled.Add"
+                Color="Color.Primary"
+                IconColor="Color.Secondary"
+                Size="Size.Medium"
+                Style="position: fixed; right: 30px; bottom: 30px;"
+                Href="/product/form" />
+    </MudTooltip>
+</MudContainer>
+
+@code {
+    private List<Product> products = new();
+    private List<Product> filteredProducts = new();
+    private string searchString = "";
+    private bool loading;
+
+    private int currentPage;
+    private int rowsPerPage = 20;
+    private int[] rowsPerPageOptions = new[] { 5, 10, 20 };
+
+    protected override async Task OnInitializedAsync()
+    {
+        loading = true;
+        products = await _service.Get();
+        filteredProducts = products;
+        loading = false;
+    }
+
+    private bool FilterFunc(Product product)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        if (product.Id.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (product.Description.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (product.Finish.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (product.Color.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (product.Dimension.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (product.Knife.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (product.Tubet.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (product.Material.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (product.Observation.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+
+    private void OnSearch(string text)
+    {
+        searchString = text;
+        filteredProducts = products.Where(FilterFunc).ToList();
+        currentPage = 0; // Resetar para a primeira página após a busca
+    }
+
+   
+
+    private async Task DeleteProduct(int id)
+    {
+        bool confirmed = true;
+
+        if (confirmed)
+        {
+            try
+            {
+                await _service.Delete(id);
+
+                await InvokeAsync(() => { _alertService.ShowAlert("Produto deletado com sucesso!", Severity.Success); });
+                await Task.Delay(1000);
+
+                await OnInitializedAsync();
+            }
+            catch (Exception ex)
+            {
+                await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+                await Task.Delay(1000);
+            }
+        }
+    }
+
+    
+}
