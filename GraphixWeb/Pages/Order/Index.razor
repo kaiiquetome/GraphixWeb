@@ -274,7 +274,7 @@
     {
         try
         {
-            _navigation.NavigateTo($"/os/edit/{obj.Id}");
+            _navigation.NavigateTo($"{_navigation.BaseUri}os/edit/{obj.Id}");
         }
         catch (Exception ex)
         {
@@ -308,7 +308,7 @@
     }
     private async Task NewOS(Order obj)
     {
-        _navigation.NavigateTo($"/os/create/{obj.Id}");
+        _navigation.NavigateTo($"{_navigation.BaseUri}os/create/{obj.Id}");
     }
     private void ShowBtnPress(int id)
     {
