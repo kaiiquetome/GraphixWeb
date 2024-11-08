@@ -64,8 +64,6 @@
                                           Culture=@(new System.Globalization.CultureInfo("pt-BR"))
                                           Immediate="true"
                                           @bind-Value:after="RecalcTotal" />
-
-                            <MudTextField Label="Frete" @bind-Value="order.Freight" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
                         </MudItem>
                         <MudItem xs="12" sm="3">
                             <MudCheckBox @bind-Value="order.FOB"
@@ -75,7 +73,6 @@
                                          Immediate="true"
                                          @bind-Value:after="RecalcTotal">
                             </MudCheckBox>
-                            <MudCheckBox @bind-Value="order.FOB" Label="FOB" Size="Size.Small" Color="Color.Primary"></MudCheckBox>
                         </MudItem>
                         <MudItem xs="12" sm="12">
                             <MudTextField Label="Observações" @bind-Value="order.Observation" />
