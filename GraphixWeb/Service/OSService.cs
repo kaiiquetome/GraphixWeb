@@ -9,34 +9,36 @@ namespace GraphixWeb.Service
     {
         private readonly string _baseMethod;
         private readonly IMapper _mapper;
-        public OSService(IMapper mapper)
+        private readonly ApiClient _apiClient;
+        public OSService(IMapper mapper, ApiClient apiClient)
         {
             _baseMethod = "orderService";
             _mapper = mapper;
+            _apiClient = apiClient;
         }
         public async Task<Models.OrderService.OS> Create(Models.OrderService.OS os)
         {
-            return await ApiClient.PostAsync<Models.OrderService.OS>(_baseMethod, _mapper.Map<OSDto>(os));
+            return await _apiClient.PostAsync<Models.OrderService.OS>(_baseMethod, _mapper.Map<OSDto>(os));
         }
         public async Task Delete(int id)
         {
-            await ApiClient.DeleteAsync<bool>($"{_baseMethod}/{id}");
+            await _apiClient.DeleteAsync<bool>($"{_baseMethod}/{id}");
         }
         public async Task<Models.OrderService.OS> Get(int id)
         {
-            return await ApiClient.GetAsync<Models.OrderService.OS>($"{_baseMethod}/{id}");
+            return await _apiClient.GetAsync<Models.OrderService.OS>($"{_baseMethod}/{id}");
         }
         public async Task<List<Models.OrderService.OS>> Get()
         {
-            return await ApiClient.GetAsync<List<Models.OrderService.OS>>($"{_baseMethod}");
+            return await _apiClient.GetAsync<List<Models.OrderService.OS>>($"{_baseMethod}");
         }
         public async Task Update(Models.OrderService.OS os)
         {
-            await ApiClient.PutAsync<bool>(_baseMethod, _mapper.Map<OSDto>(os));
+            await _apiClient.PutAsync<bool>(_baseMethod, _mapper.Map<OSDto>(os));
         }
         public async Task<byte[]> Download(int id)
         {
-            return await ApiClient.DownloadFileAsync<byte[]>($"{_baseMethod}/download?Id={id}");
+            return await _apiClient.DownloadFileAsync<byte[]>($"{_baseMethod}/download?Id={id}");
         }
     }
 }

@@ -1,3 +1,32 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager _navigation
 
 <PageTitle>Home</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <h4>Bem vindo <b>@context.User.Identity.Name</b></h4>
+    </Authorized>
+</AuthorizeView>
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var customAuthStateProvider = (CustomAuthStateProvider)authStateProvider;
+
+            bool isAuthenticated = await customAuthStateProvider.IsUserAuthenticatedAsync();
+
+            if (!isAuthenticated)
+            {
+                _navigation.NavigateTo($"{_navigation.BaseUri}login");
+            }
+        }
+        catch (Exception e)
+        {
+            _navigation.NavigateTo($"{_navigation.BaseUri}login");
+        }
+    }
+}

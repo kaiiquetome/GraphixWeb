@@ -11,5 +11,6 @@ namespace GraphixWeb.Contract
         Task Create(User user);
         Task Update(User user);
         Task Delete(int id);
+        Task Login(User user);
     }
 }

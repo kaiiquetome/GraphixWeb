@@ -1,25 +1,29 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        @inject NavigationManager navigationManager
+﻿@inject CustomAuthStateProvider AuthenticationStateProvider
 
-        <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Desculpe, pagina não encontrada! Redirecionando para a home...</p>
-        </LayoutView>
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            @inject NavigationManager navigationManager
 
-        @code {
-        protected override void OnAfterRender(bool firstRender)
-        {
-            if (firstRender)
-            {
-                // Redireciona para a página inicial ("/")
-                navigationManager.NavigateTo($"{navigationManager.BaseUri}");
+            <PageTitle>Not found</PageTitle>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p role="alert">Desculpe, pagina não encontrada! Redirecionando para a home...</p>
+            </LayoutView>
+
+            @code {
+                protected override void OnAfterRender(bool firstRender)
+                {
+                    if (firstRender)
+                    {
+                        // Redireciona para a página inicial ("/")
+                        navigationManager.NavigateTo($"{navigationManager.BaseUri}");
+                    }
+                }
             }
-        }
-        }
-    </NotFound>
-</Router>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

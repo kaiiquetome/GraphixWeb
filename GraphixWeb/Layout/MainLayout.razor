@@ -1,4 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager _navigation2
+@inject IAuthService _authService
+@inject AuthenticationStateProvider authStateProvider
+
 <Alert />
 <MudThemeProvider Theme="@_theme" />
 <MudPopoverProvider />
@@ -20,6 +24,9 @@
             <MudMenuItem Href="user">
                 <MudText Typo="Typo.body1">Usuários</MudText>
             </MudMenuItem>
+            <MudMenuItem OnClick="Logout">
+                <MudText Typo="Typo.body1">Logout</MudText>
+            </MudMenuItem>
         </MudMenu>
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Width="10%" Style="padding-top: 16px;" Elevation="4">
@@ -40,6 +47,13 @@
     private MudTheme? _theme = null;
     private bool _drawerOpen = true;
     [Inject] private NavigationManager _navigation { get; set; } = null!;
+
+    private async Task Logout()
+    {
+        var customAuthStateProvider = (CustomAuthStateProvider)authStateProvider;
+        await customAuthStateProvider.LogoutAsync();
+        _navigation.NavigateTo($"{_navigation.BaseUri}login");
+    }
 
     protected override void OnInitialized()
     {

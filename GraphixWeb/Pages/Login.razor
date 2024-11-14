@@ -1,0 +1,83 @@
+﻿@page "/login"
+@layout LoginLayout
+@inject NavigationManager _navigation
+@inject IAuthService _authService
+@inject AlertService _alertService
+@inject AuthenticationStateProvider authStateProvider
+
+<Alert />
+<MudContainer MaxWidth="MaxWidth.Small" Class="pa-6">
+    <MudPaper Elevation="1" Class="pa-6" Style="background-color: #fefefe;width: 80%; text-align:center">
+        <MudItem Class="d-flex justify-center">
+            <MudImage Src="images/logo_login.png" Alt="Logo" Width="150" Height="200" />
+        </MudItem>
+        <br /><br />
+        <MudPaper Class="pa-6" Style="background-color: #fefefe">
+            <EditForm Model="user" OnValidSubmit="Logar">
+                <MudStack Spacing="2" Justify="Justify.Center">
+                    <MudGrid>
+                        <MudItem xs="12">
+                            <MudTextField Label="Usuário"
+                                          @bind-Value="user.Login"
+                                          For="@(() => user.Login)"
+                                          Required="true"
+                                          FullWidth="true" />
+                            <MudTextField Label="Senha"
+                                          @bind-Value="user.Password"
+                                          For="@(() => user.Password)"
+                                          Required="true"
+                                          InputType="InputType.Password"
+                                          FullWidth="true" />
+                            <br />
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       ButtonType="ButtonType.Submit"
+                                       FullWidth="true">
+                                Logar
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+                </MudStack>
+            </EditForm>
+        </MudPaper>
+    </MudPaper>
+</MudContainer>
+@code {
+    private LoginUserDto user = new();
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var customAuthStateProvider = (CustomAuthStateProvider)authStateProvider;
+
+            bool isAuthenticated = await customAuthStateProvider.IsUserAuthenticatedAsync();
+
+            if (isAuthenticated)
+            {
+                _navigation.NavigateTo($"{_navigation.BaseUri}");
+            }
+        }
+        catch (Exception e)
+        {
+
+            throw;
+        }
+    }
+    private async Task Logar()
+    {
+        try
+        {
+            await _authService.LoginAsync(user.Login, user.Password);
+
+            var customAuthStateProvider = (CustomAuthStateProvider)authStateProvider;
+
+            await customAuthStateProvider.LoginAsync();
+            _navigation.NavigateTo($"{_navigation.BaseUri}");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+}
