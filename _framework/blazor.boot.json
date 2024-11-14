@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "GraphixWeb",
   "resources": {
-    "hash": "sha256-Ur28AAXScAttkFK0RqAUz4el8QjeKXWRKTMu9ha5UUo=",
+    "hash": "sha256-lySfTgoF6OEVMV6XJin+VlE8IJVu175vnaA8fITqrJY=",
     "jsModuleNative": {
       "dotnet.native.8.0.11.0o4vhqqe2w.js": "sha256-s67NKDbcssHPQowjs9cUpPt6BZPt+/QQL3JFikU0JkA="
     },
@@ -9,7 +9,7 @@
       "dotnet.runtime.8.0.11.a3e1lehypq.js": "sha256-nam8JTYKjhMKOTg6+FlihYP6JpWPGe3jjM9fiUFWzhY="
     },
     "wasmNative": {
-      "dotnet.native.wasm": "sha256-460OaL6GrjQfA3YBFa3jLs/8EOyJsfTGdwSUaHzWMiU="
+      "dotnet.native.wasm": "sha256-uVraKFg41VL8mk1CjVstyyyY0k8NHobq44AcjLlKHQQ="
     },
     "icu": {
       "icudt_CJK.dat": "sha256-SZLtQnRc0JkwqHab0VUVP7T3uBPSeYzxzDnpxPpUnHk=",
@@ -19,7 +19,7 @@
     "assembly": {
       "AutoMapper.wasm": "sha256-pQ4Xf706xSWYtP4HFejje/2xeMx82yLD1hKlKL3JR1I=",
       "BlazorInputMask.wasm": "sha256-6rfwIiKYypCxlt9srnY3B0+xjcI28YgXgNPuRj0fvD8=",
-      "GraphixWeb.wasm": "sha256-WzdzdR7UQnEv5Mkx9O68oVScypdB76Bo6YgvnGF6ZpI=",
+      "GraphixWeb.wasm": "sha256-lTLAmKuUKPyEKazzjDVbhTnVTPz+fC7Ng8ABPqo4MNU=",
       "Microsoft.AspNetCore.Authorization.wasm": "sha256-WHV91hKpEkms8mH83PcvILvo1tQWa5ysbLSL6mpPl9g=",
       "Microsoft.AspNetCore.Components.Authorization.wasm": "sha256-kdujXlBr+hSY7ZMAEvM6zq0Ye7qvCxK91EQNvgIDUPQ=",
       "Microsoft.AspNetCore.Components.Forms.wasm": "sha256-PdwhtsA5wncrjKBD/bYhO3P0W8yeauEn2geyZ25iqlI=",
@@ -71,7 +71,7 @@
       "System.Net.Http.wasm": "sha256-JeVRZRo+mjn4240BM5EICbmnYGZZZz/DEdfa6N6zVhE=",
       "System.Net.Primitives.wasm": "sha256-ZCXZoFCbd0PTval9JzLmebsLeKJcH0EfBW1O3aIb6SI=",
       "System.ObjectModel.wasm": "sha256-juNAa0+o04y9jAENg6SEre6ZPGRdebGrg5YLvpoGco4=",
-      "System.Private.CoreLib.wasm": "sha256-7KpkfaB411dfnkuhTE9ixg85e3i+eKUcQycae4uQhEY=",
+      "System.Private.CoreLib.wasm": "sha256-/RabUCg/D3ccd+gd8VpN9KVaoTDeFl8cvL62WG0B0Y0=",
       "System.Private.Uri.wasm": "sha256-09j+h18nhQhTo+CxKVABxDpGNB75wGzwuWgl5XbVjlM=",
       "System.Reflection.Emit.ILGeneration.wasm": "sha256-+szxb4eUFUay4tQSAyH29q3NYHcx5KX7LOX0IjJgOM8=",
       "System.Reflection.Emit.wasm": "sha256-y+ObMwX1ZRlqHQ6gtTOS+/EntKIQeQu8SbbmQ8zDN1A=",
