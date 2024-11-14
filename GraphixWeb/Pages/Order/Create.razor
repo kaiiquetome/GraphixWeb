@@ -62,7 +62,7 @@
                                           @bind-Value="order.Freight"
                                           Format="C2"
                                           Culture=@(new System.Globalization.CultureInfo("pt-BR"))
-                                          Immediate="true"
+                                          Immediate="false"
                                           @bind-Value:after="RecalcTotal" />
                         </MudItem>
                         <MudItem xs="12" sm="3">
@@ -108,11 +108,18 @@
                             <MudTd>
                                 <MudNumericField @bind-Value="context.Quantity"
                                                  Min="1"
-                                                 Immediate="true"
-                                                 Label="Quantidade" />
+                                                 Label="Quantidade"
+                                                 Immediate="false"
+                                                 @bind-Value:after="RecalcTotal" />
                             </MudTd>
                             <MudTd>
-                                <MudTextField T="decimal" Label="Total" @bind-Value="@context.Total" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+                                <MudTextField T="decimal"
+                                              Label="Total"
+                                              @bind-Value="@context.Total"
+                                              Format="C2"
+                                              Culture=@(new System.Globalization.CultureInfo("pt-BR"))
+                                              Immediate="false"
+                                              @bind-Value:after="RecalcTotal" />
                             </MudTd>
                             <MudTd>
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete"
