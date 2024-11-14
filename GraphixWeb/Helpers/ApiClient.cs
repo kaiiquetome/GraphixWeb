@@ -29,7 +29,11 @@ namespace GraphixWeb.Helpers
 
         private async Task<T> SendAsync<T>(HttpMethod httpMethod, string requestUri, object content = null)
         {
-            await _authService.RefreshTokenAsync();
+            var timeExpireToken = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "timestemp");
+
+            if (DateTime.TryParse(timeExpireToken, out DateTime result) && result <= DateTime.Now)
+                await _authService.RefreshTokenAsync();
+
             var token = await _authService.GetTokenAsync();
 
             var request = new HttpRequestMessage(httpMethod, _baseUrl + requestUri);

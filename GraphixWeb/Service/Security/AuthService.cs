@@ -57,8 +57,13 @@ namespace GraphixWeb.Service.Security
             await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "authToken");
             await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "refreshToken");
             await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "roles");
+            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "timestamp");
         }
 
+        public async Task<string> GetTimestempAsync()
+        {
+            return await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "timestemp");
+        }
         public async Task<string> GetTokenAsync()
         {
             return await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
@@ -81,6 +86,8 @@ namespace GraphixWeb.Service.Security
                 await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", response.JwtToken);
                 await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "refreshToken", response.RefreshToken);
                 await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "roles", JsonSerializer.Serialize(response.Roles));
+                await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "timestemp", DateTime.Now.AddMinutes(15));
+                //await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "timestemp", DateTime.Now);
                 return true;
             }
             else

@@ -6,6 +6,6 @@
         Task<bool> RefreshTokenAsync();
         Task LogoutAsync();
         Task<string> GetTokenAsync();
-        
+        Task<string> GetTimestempAsync();
     }
 }

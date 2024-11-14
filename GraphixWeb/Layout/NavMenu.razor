@@ -2,14 +2,11 @@
 <MudNavMenu>
     <AuthorizeView Roles="Admin">
         <Authorized>
-            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Início</MudNavLink>
+            <MudNavLink Href="GraphixWeb" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Início</MudNavLink>
             <MudNavLink Href="customer" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Clientes</MudNavLink>
             <MudNavLink Href="product" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ShoppingCart">Produtos</MudNavLink>
             <MudNavLink Href="order" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.RealEstateAgent">Pedidos</MudNavLink>
             <MudNavLink Href="os" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Assignment">Ordem de Serviço</MudNavLink>
         </Authorized>
-        <NotAuthorized>
-
-        </NotAuthorized>
     </AuthorizeView>
 </MudNavMenu>
