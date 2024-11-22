@@ -59,7 +59,7 @@ namespace GraphixWeb.Helpers
             
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                await _authStateProvider.LogoutAsync();
+                await _authStateProvider.LogoutUnathorized();
 
                 throw new HttpRequestException($"Sua sessão expirou, faça o login novamente.");
             }

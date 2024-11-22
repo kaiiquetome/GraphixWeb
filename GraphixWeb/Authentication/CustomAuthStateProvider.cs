@@ -1,6 +1,8 @@
 ﻿using GraphixWeb.Contract;
+using GraphixWeb.Service;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using MudBlazor;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Principal;
@@ -11,12 +13,13 @@ namespace GraphixWeb.Authentication
         private readonly IAuthService _authService;
         private readonly ClaimsPrincipal _anonymous = new ClaimsPrincipal(new ClaimsIdentity());
         private readonly NavigationManager _navigation;
+        private readonly AlertService _alertService;
 
-
-        public CustomAuthStateProvider(IAuthService authService, NavigationManager navigationManager)
+        public CustomAuthStateProvider(IAuthService authService, NavigationManager navigationManager, AlertService alertService)
         {
             _authService = authService;
             _navigation = navigationManager;
+            _alertService = alertService;
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
@@ -43,6 +46,12 @@ namespace GraphixWeb.Authentication
                 return new AuthenticationState(new ClaimsPrincipal(identity));
             }
 
+        }
+        public async Task LogoutUnathorized()
+        {
+            _alertService.ShowAlert("Sua sessão expirou, faça o login novamente.", Severity.Error);
+            await Task.Delay(1500);
+            await LogoutAsync();
         }
         public async Task LogoutAsync()
         {
