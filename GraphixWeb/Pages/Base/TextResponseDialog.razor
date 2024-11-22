@@ -1,0 +1,22 @@
+﻿<MudDialog MaxWidth="MaxWidth.Small" FullWidth="true">
+    <DialogContent>
+        <MudTextField @bind-Value="PrazoEntrega" Label="Prazo de Entrega" Variant="Variant.Filled" Required="true" />
+        <MudSpacer />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => MudDialog.Cancel()" Color="Color.Error" Variant="Variant.Filled">Cancelar</MudButton>
+        <MudSpacer />
+        <MudButton OnClick="Confirmar" Color="Color.Success" Variant="Variant.Filled" Disabled="@string.IsNullOrWhiteSpace(PrazoEntrega)">Confirmar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    public string PrazoEntrega { get; set; }
+
+    void Confirmar()
+    {
+        MudDialog.Close(DialogResult.Ok(PrazoEntrega));
+    }
+}

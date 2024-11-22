@@ -8,6 +8,8 @@ using GraphixWeb.DTOs.Security;
 using System.ComponentModel.Design;
 using System;
 using GraphixWeb.Contract;
+using GraphixWeb.Authentication;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace GraphixWeb.Helpers
 {
@@ -17,14 +19,17 @@ namespace GraphixWeb.Helpers
         private readonly IJSRuntime _jsRuntime;
         private readonly string _baseUrl;
         private readonly IAuthService _authService;
+        private readonly CustomAuthStateProvider _authStateProvider;
 
-        public ApiClient(HttpClient httpClient, IJSRuntime jsRuntime, IConfiguration configuration, IAuthService authService)
+        public ApiClient(HttpClient httpClient, IJSRuntime jsRuntime, IConfiguration configuration, IAuthService authService, AuthenticationStateProvider authStateProvider)
         {
             _httpClient = httpClient;
             _jsRuntime = jsRuntime;
             _baseUrl = configuration["baseUrl"];
             _httpClient.DefaultRequestHeaders.Add("ngrok-skip-browser-warning", "true");
             _authService = authService;
+            _authStateProvider = (CustomAuthStateProvider)authStateProvider;
+
         }
 
         private async Task<T> SendAsync<T>(HttpMethod httpMethod, string requestUri, object content = null)
@@ -51,7 +56,14 @@ namespace GraphixWeb.Helpers
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await _httpClient.SendAsync(request);
+            
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await _authStateProvider.LogoutAsync();
 
+                throw new HttpRequestException($"Sua sessão expirou, faça o login novamente.");
+            }
+            
             if (response.IsSuccessStatusCode)
             {
                 if (typeof(T) == typeof(byte[]))
@@ -79,6 +91,9 @@ namespace GraphixWeb.Helpers
             }
             catch (JsonException)
             {
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    await _authService.LogoutAsync();
+
                 throw new HttpRequestException($"Ops a requisição falhou, entre em contato com o suporte técnico! StatusCode:{response.StatusCode}, Response: {errorResponseContent}");
             }
         }

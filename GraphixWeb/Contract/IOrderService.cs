@@ -11,6 +11,6 @@ namespace GraphixWeb.Contract
         Task Update(Order order);
         Task Delete(int id);
         Task<byte[]> Export(string startDate, string endDate);
-        Task<byte[]> Download(int id);
+        Task<byte[]> Download(int id, string deadLine);
     }
 }

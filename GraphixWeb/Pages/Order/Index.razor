@@ -3,6 +3,7 @@
 @inject IOrderService _service
 @inject AlertService _alertService
 @inject IJSRuntime _js
+@inject IDialogService _dialogService
 
 <Alert />
 
@@ -339,14 +340,23 @@
     {
         try
         {
-            var fileBytes = await _service.Download(obj.Id);
+            var options = new DialogOptions { CloseOnEscapeKey = true };
+            var prazoDialog = _dialogService.Show<TextResponseDialog>("Prazo de Entrega", options: options);
+            var prazoResult = await prazoDialog.Result;
 
-            var fileName = $"Pedido_{obj.OrderNumber}-{obj.Customer.CorporateName}.pdf";
-            var contentType = "application/pdf";
+            if (!prazoResult.Canceled)
+            {
+                string prazoEntrega = prazoResult.Data as string;
 
-            var base64 = Convert.ToBase64String(fileBytes);
+                var fileBytes = await _service.Download(obj.Id, prazoEntrega);
 
-            await _js.InvokeVoidAsync("downloadFileFromBytes", fileName, contentType, fileBytes);
+                var fileName = $"Pedido_{obj.OrderNumber}.pdf";
+                var contentType = "application/pdf";
+
+                var base64 = Convert.ToBase64String(fileBytes);
+
+                await _js.InvokeVoidAsync("downloadFileFromBytes", fileName, contentType, fileBytes);
+            }
         }
         catch (Exception ex)
         {

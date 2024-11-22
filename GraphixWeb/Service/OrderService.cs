@@ -37,9 +37,9 @@ namespace GraphixWeb.Service
         {
             await _apiClient.PutAsync<bool>(_baseMethod, _mapper.Map<OrderDto>(order));
         }
-        public async Task<byte[]> Download(int id)
+        public async Task<byte[]> Download(int id, string deadLine)
         {
-            return await _apiClient.DownloadFileAsync<byte[]>($"{_baseMethod}/download?Id={id}");
+            return await _apiClient.DownloadFileAsync<byte[]>($"{_baseMethod}/download?Id={id}&OrderDeadline={deadLine}");
         }
         public async Task<byte[]> Export(string startDate, string endDate)
         {

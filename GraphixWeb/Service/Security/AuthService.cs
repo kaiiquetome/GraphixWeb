@@ -2,6 +2,7 @@
 using GraphixWeb.Contract;
 using GraphixWeb.DTOs.Security;
 using GraphixWeb.Helpers;
+using GraphixWeb.Models;
 using Microsoft.JSInterop;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -33,7 +34,15 @@ namespace GraphixWeb.Service.Security
                 return await SetLocalStorage(response);
             }
             else
-                throw new ApplicationException($"Falha na autenticação, você sera redirecionado para tela de login.");
+            {
+                var errorResponseContent = await loginResponse.Content.ReadAsStringAsync();
+                var errorResponse = JsonSerializer.Deserialize<CustomErrorModel>(errorResponseContent, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
+                throw new HttpRequestException($"{errorResponse?.Error}");
+            }
         }
         public async Task<bool> RefreshTokenAsync()
         {
@@ -57,7 +66,7 @@ namespace GraphixWeb.Service.Security
             await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "authToken");
             await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "refreshToken");
             await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "roles");
-            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "timestamp");
+            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "timestemp");
         }
 
         public async Task<string> GetTimestempAsync()

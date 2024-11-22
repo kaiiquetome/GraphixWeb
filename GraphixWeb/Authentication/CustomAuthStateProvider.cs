@@ -1,4 +1,5 @@
 ﻿using GraphixWeb.Contract;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -9,10 +10,13 @@ namespace GraphixWeb.Authentication
     {
         private readonly IAuthService _authService;
         private readonly ClaimsPrincipal _anonymous = new ClaimsPrincipal(new ClaimsIdentity());
+        private readonly NavigationManager _navigation;
 
-        public CustomAuthStateProvider(IAuthService authService)
+
+        public CustomAuthStateProvider(IAuthService authService, NavigationManager navigationManager)
         {
             _authService = authService;
+            _navigation = navigationManager;
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
@@ -45,6 +49,8 @@ namespace GraphixWeb.Authentication
             await _authService.LogoutAsync();
 
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(_anonymous)));
+
+            _navigation.NavigateTo($"{_navigation.BaseUri}login");
         }
 
         public async Task LoginAsync()

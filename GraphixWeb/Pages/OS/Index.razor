@@ -49,7 +49,7 @@
                 <MudTd DataLabel="Numero Pedido">@context.Order.OrderNumber</MudTd>
                 <MudTd DataLabel="Cliente">@context.Customer.CorporateName</MudTd>
                 <MudTd DataLabel="Cliente">@context.Order.Observation</MudTd>
-                <MudTd DataLabel="Total">@context.DeliveryDeadline</MudTd>
+                <MudTd DataLabel="Total">@context.DeliveryDeadline?.ToString("dd/MM/yyyy")</MudTd>
                 <MudTd DataLabel="Status">
                     <MudText Color="@GetStatusColor(context.Status)">
                         @context.Status.GetEnumDescription()
