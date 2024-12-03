@@ -114,6 +114,7 @@
                         <HeaderContent>
                             <MudTh>Quantidade</MudTh>
                             <MudTh>Total</MudTh>
+                            <MudTh>Descrição</MudTh>
                             <MudTh>Acabamento</MudTh>
                             <MudTh>Cor</MudTh>
                             <MudTh>Dimensão</MudTh>
@@ -124,6 +125,7 @@
                         <RowTemplate Context="item">
                             <MudTd DataLabel="Quantidade">@item.Quantity</MudTd>
                             <MudTd DataLabel="Total">@item.Total.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</MudTd>
+                            <MudTd DataLabel="Descrição">@item.Product.Description</MudTd>
                             <MudTd DataLabel="Tamanho">@item.Product.Finish</MudTd>
                             <MudTd DataLabel="Cor">@item.Product.Color</MudTd>
                             <MudTd DataLabel="Dimensão">@item.Product.Dimension</MudTd>

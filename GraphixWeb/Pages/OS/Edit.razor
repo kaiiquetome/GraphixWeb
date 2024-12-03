@@ -3,6 +3,7 @@
 @inject IProductService _productService
 @inject NavigationManager _navigation
 @inject AlertService _alertService
+@inject IJSRuntime _js
 
 <PageTitle>Atualizar Ordem de Serviço</PageTitle>
 <Alert />
@@ -17,7 +18,7 @@
             </CardHeaderContent>
             <CardHeaderActions>
                 <MudTooltip Text="Imprimir">
-                    <MudIconButton Icon="@Icons.Material.Filled.Print" Color="Color.Tertiary" Variant="Variant.Filled" OnClick="PrintOrderService" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Print" Color="Color.Tertiary" Variant="Variant.Filled" OnClick="()=>DownloadOS(os)" />
                 </MudTooltip>
                 <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="()=> Update()">
                     Salvar
@@ -455,5 +456,24 @@
     {
         os.Aniloxs.Remove(obj);
         await InvokeAsync(StateHasChanged);
+    }
+    private async Task DownloadOS(OS obj)
+    {
+        try
+        {
+            var fileBytes = await _service.Download(obj.Id);
+
+            var fileName = $"Ordem de Serviço_{obj.Id}.pdf";
+            var contentType = "application/pdf";
+
+            var base64 = Convert.ToBase64String(fileBytes);
+
+            await _js.InvokeVoidAsync("downloadFileFromBytes", fileName, contentType, fileBytes);
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
     }
 }
