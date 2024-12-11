@@ -269,6 +269,10 @@
                 // Menos de 3 dias - amarelo translúcido
                 return "background-color: rgba(255, 255, 0, 0.5); color: black;";
             }
+            else if (order.Status == OrderStatus.completed)
+            {
+                return "background-color: rgba(193, 240, 193); color: black;";
+            }
         }
         return ""; // Sem cor
     }
@@ -334,7 +338,7 @@
         }
         catch (Exception ex)
         {
-            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); }); 
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
             await Task.Delay(1000);
         }
     }
