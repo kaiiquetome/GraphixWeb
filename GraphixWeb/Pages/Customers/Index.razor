@@ -101,13 +101,13 @@
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
 
-        if (customer.CorporateName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(customer.CorporateName) && customer.CorporateName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (customer.Cnpj.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(customer.Cnpj) && customer.Cnpj.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (customer.IE.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(customer.IE) && customer.IE.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (customer.Contact.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(customer.Contact) && customer.Contact.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;
