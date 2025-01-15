@@ -1,0 +1,162 @@
+﻿@page "/cashFlow/form"
+@page "/cashFlow/form/{id:int}"
+
+@inject NavigationManager _navigation
+@inject ICashFlowService _cashFLowService
+@inject IOrderService _orderService
+@inject AlertService _alertService
+
+<Alert />
+<PageTitle>@FormTitle</PageTitle>
+<MudContainer MaxWidth="MaxWidth.Small" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-3" Style="width: 100%;">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">@FormTitle</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="()=> HandleValidSubmit()">
+                    @ButtonText
+                </MudButton>
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudPaper Elevation="1" Class="pa-6" Style="background-color: #fefefe;">
+            <EditForm Model="@cashFlow" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <MudGrid>
+                    @if (id.HasValue && cashFlow.OrderId != null)
+                    {
+                        <MudItem xs="12">
+                            <MudSelect T="int" Label="Pedido" @bind-Value="orderId" ReadOnly="true">
+                                @foreach (var order in orders)
+                                {
+                                    <MudSelectItem Value="order.Id">@order.OrderNumber | @order.Customer.CorporateName</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                    }
+                    <MudItem xs="6">
+                        <MudSelect T="CashFlowType" Label="Tipo" @bind-Value="cashFlow.Type">
+                            @foreach (var type in Enum.GetValues(typeof(CashFlowType)).Cast<CashFlowType>())
+                            {
+                                <MudSelectItem Value="type">@type.GetEnumDescription()</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudSelect T="CashFlowCategory" Label="Categoria" @bind-Value="cashFlow.Category">
+                            @foreach (var category in Enum.GetValues(typeof(CashFlowCategory)).Cast<CashFlowCategory>())
+                            {
+                                <MudSelectItem Value="category">@category.GetEnumDescription()</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Descrição"
+                                      @bind-Value="cashFlow.Description"
+                                      For="@(() => cashFlow.Description)"
+                                      Required="true"
+                                      Class="mb-3" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField Label="Parcela"
+                                      @bind-Value="cashFlow.InstallmentNumber"
+                                      For="@(() => cashFlow.InstallmentNumber)"
+                                      Required="true"
+                                      Class="mb-3" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudDatePicker Label="Date Previsão Pagamento" @bind-Date="cashFlow.ExpectedDateReceive" Editable="true" ShowToolbar="false" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField T="decimal" Label="Total Previsão Pagamento" @bind-Value="cashFlow.ExpectedValueReceive" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudDatePicker Label="Date Pagamento" @bind-Date="cashFlow.DateReceive" Editable="true" ShowToolbar="false" />
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField T="decimal?" Label="Total Pagamento" @bind-Value="cashFlow.ValueReceive" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        </MudPaper>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter] public int? id { get; set; }
+    private CashFlow cashFlow = new();
+    private List<Order> orders = new();
+    private string FormTitle = "Fluxo de Caixa";
+    private string ButtonText = "Salvar";
+    private int orderId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+
+            if (id.HasValue)
+            {
+                orders = await _orderService.Get();
+                orders = orders.Where(w => w.Status == OrderStatus.completed).ToList();
+
+                FormTitle = "Atualizar Fluxo de Caixa";
+                ButtonText = "Salvar";
+
+                cashFlow = await _cashFLowService.Get(id.Value);
+                if (cashFlow.OrderId != null)
+                    orderId = Convert.ToInt32(cashFlow.OrderId);
+            }
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert($"Não foi possível encontrar o registro id:{id.Value}.", Severity.Error); });
+            await Task.Delay(1000);
+            // _navigation.NavigateTo($"{_navigation.BaseUri}cashFlow"); // Opcional: Redirecionar se não encontrar
+        }
+    }
+    private async Task HandleValidSubmit()
+    {
+        if (id.HasValue)
+        {
+            await UpdateCashFlow();
+        }
+        else
+        {
+            await CreateCashFlow();
+        }
+    }
+
+    private async Task CreateCashFlow()
+    {
+        try
+        {
+            await _cashFLowService.Create(cashFlow);
+            await InvokeAsync(() => { _alertService.ShowAlert($"{cashFlow.Type.GetEnumDescription()} registrada com sucesso!", Severity.Success); });
+            await Task.Delay(1000);
+            _navigation.NavigateTo($"{_navigation.BaseUri}cashFlow");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+
+    private async Task UpdateCashFlow()
+    {
+        try
+        {
+            await _cashFLowService.Update(cashFlow);
+            await InvokeAsync(() => { _alertService.ShowAlert($"{cashFlow.Type.GetEnumDescription()}  atualizada com sucesso!", Severity.Success); });
+            await Task.Delay(1000);
+            _navigation.NavigateTo($"{_navigation.BaseUri}cashFlow");
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+            await Task.Delay(1000);
+        }
+    }
+}

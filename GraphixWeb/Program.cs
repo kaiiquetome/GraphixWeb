@@ -5,7 +5,6 @@ using GraphixWeb.Contract;
 using GraphixWeb.Helpers;
 using GraphixWeb.Service;
 using GraphixWeb.Service.Security;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -21,7 +20,10 @@ var config = new ConfigurationBuilder()
     .Build();
 
 builder.Services.AddSingleton<IConfiguration>(config);
-
+AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+{
+    Console.WriteLine($"Unhandled exception: {args.ExceptionObject}");
+};
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
@@ -30,6 +32,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOSService, OSService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICashFlowService, CashFlowService>();
 builder.Services.AddScoped<ApiClient>();
 
 builder.Services.AddAuthorizationCore();

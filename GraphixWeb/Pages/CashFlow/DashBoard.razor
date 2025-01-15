@@ -1,0 +1,241 @@
+﻿@page "/cashflow-dash"
+@inject NavigationManager _navigation
+@inject ICashFlowService _service
+@inject AlertService _alertService
+@inject IJSRuntime _js
+@inject IDialogService _dialogService
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-1" Style="width: 100%;">
+        <MudDateRangePicker @bind-DateRange="@_dateRange" Margin="Margin.Dense" ReadOnly="false" Clearable="true"
+                            PlaceholderStart="Data Inicio" PlaceholderEnd="Data Fim" />
+
+        <MudGrid Spacing="4" Justify="Justify.Center">
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="25" Class="d-flex flex-row pt-6 pb-4" Style="height:100%;">
+                    <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Color="Color.Primary" Class="mx-4" Style="width:64px; height:64px;"></MudIcon>
+                    <div>
+                        <MudText Typo="Typo.body1" Class="mud-text-secondary mb-n1">Entrada</MudText>
+                        @* <MudText Typo="Typo.caption" Class="mud-text-secondary mb-n1">Entrada</MudText> *@
+                        <MudText Typo="Typo.h6">@entrada_vendas.ToString("C2")</MudText>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="25" Class="d-flex flex-row pt-6 pb-4" Style="height:100%;">
+                    <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Color="Color.Primary" Class="mx-4" Style="width:64px; height:64px;"></MudIcon>
+                    <div>
+                        <MudText Typo="Typo.body1" Class="mud-text-secondary mb-n1">Saida</MudText>
+                        @* <MudText Typo="Typo.caption" Class="mud-text-secondary mb-n1">Entrada</MudText> *@
+                        <MudText Typo="Typo.h6">@saida_vendas.ToString("C2")</MudText>
+                    </div>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Elevation="25" Class="d-flex flex-row pt-6 pb-4" Style="height:100%;">
+                    <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Color="Color.Primary" Class="mx-4" Style="width:64px; height:64px;"></MudIcon>
+                    <div>
+                        <MudText Typo="Typo.body1" Class="mud-text-secondary mb-n1">Previsão</MudText>
+                        @* <MudText Typo="Typo.caption" Class="mud-text-secondary mb-n1">Entrada</MudText> *@
+                        <MudText Typo="Typo.h6">E: @entrada_previsao_vendas.ToString("C2")</MudText>
+                        <MudText Typo="Typo.h6">S: @saida_previsao_vendas.ToString("C2")</MudText>
+                    </div>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    public double[] entrada = { 25, 77, 28, 5, 0, 0 };
+    public double[] saida = { 25, 77, 28, 5, 0, 0 };
+    public string[] labels = { "Vendas", "Servicos", "Aluguel", "Salarios", "Marketing", "Outros" };
+
+    private List<CashFlow> cashFlows = new();
+    private List<CashFlow> filteredCashFlows = new();
+    private CashFlow selectedCashFlow = new();
+
+    private bool loading;
+    private string searchString = "";
+
+    private DateTime startDate = DateTime.Now.AddDays(-30);
+    private DateTime endDate = DateTime.Now;
+    private DateRange _dateRange { get; set; }
+
+    private CashFlowCategoryView category;
+    private CashFlowTypeView type;
+
+    private int currentPage;
+    private int rowsPerPage = 20;
+    private int[] rowsPerPageOptions = new[] { 5, 10, 20 };
+
+    private decimal totalReceive = 0;
+    private decimal totalExpected = 0;
+    private decimal saldo = 0;
+
+    private decimal saldo_vendas = 0;
+    private decimal saldo_servico = 0;
+    private decimal saldo_aluguel = 0;
+    private decimal saldo_salarios = 0;
+    private decimal saldo_marketing = 0;
+    private decimal saldo_outros = 0;
+
+    private decimal entrada_vendas = 0;
+    private decimal entrada_servico = 0;
+    private decimal entrada_aluguel = 0;
+    private decimal entrada_salarios = 0;
+    private decimal entrada_marketing = 0;
+    private decimal entrada_outros = 0;
+
+    private decimal entrada_previsao_vendas = 0;
+    private decimal entrada_previsao_servico = 0;
+    private decimal entrada_previsao_aluguel = 0;
+    private decimal entrada_previsao_salarios = 0;
+    private decimal entrada_previsao_marketing = 0;
+    private decimal entrada_previsao_outros = 0;
+
+    private decimal saida_vendas = 0;
+    private decimal saida_servico = 0;
+    private decimal saida_aluguel = 0;
+    private decimal saida_salarios = 0;
+    private decimal saida_marketing = 0;
+    private decimal saida_outros = 0;
+
+    private decimal saida_previsao_vendas = 0;
+    private decimal saida_previsao_servico = 0;
+    private decimal saida_previsao_aluguel = 0;
+    private decimal saida_previsao_salarios = 0;
+    private decimal saida_previsao_marketing = 0;
+    private decimal saida_previsao_outros = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Refresh();
+    }
+    private async Task Refresh(bool byUser = false)
+    {
+        try
+        {
+            loading = true;
+            cashFlows = await _service.Get(startDate, endDate);
+
+            loading = false;
+            RecalcTotal();
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+        }
+    }
+    private void RecalcTotal()
+    {
+        foreach (var item in cashFlows)
+        {
+            if (item.Type == CashFlowType.Input)
+            {
+                if (item.Category == CashFlowCategory.Sales)
+                {
+                    if (item.ValueReceive != null)
+                        entrada_vendas += Convert.ToDecimal(item.ValueReceive);
+                    else
+                        entrada_previsao_vendas += Convert.ToDecimal(item.ExpectedValueReceive);
+                }
+                else if (item.Category == CashFlowCategory.Services)
+                {
+                    if (item.ValueReceive != null)
+                        entrada_servico += Convert.ToDecimal(item.ValueReceive);
+                    else
+                        entrada_previsao_servico += Convert.ToDecimal(item.ExpectedValueReceive);
+                }
+                else if (item.Category == CashFlowCategory.Rent)
+                {
+                    entrada_aluguel += Convert.ToDecimal(item.ValueReceive);
+                    if (item.ValueReceive != null)
+                        entrada_aluguel += Convert.ToDecimal(item.ValueReceive);
+                    else
+                        entrada_previsao_aluguel += Convert.ToDecimal(item.ExpectedValueReceive);
+                }
+                else if (item.Category == CashFlowCategory.Salaries)
+                {
+                    entrada_salarios += Convert.ToDecimal(item.ValueReceive);
+                    if (item.ValueReceive != null)
+                        entrada_salarios += Convert.ToDecimal(item.ValueReceive);
+                    else
+                        entrada_previsao_salarios += Convert.ToDecimal(item.ExpectedValueReceive);
+                }
+                else if (item.Category == CashFlowCategory.Marketing)
+                {
+                    entrada_marketing += Convert.ToDecimal(item.ValueReceive);
+                    if (item.ValueReceive != null)
+                        entrada_marketing += Convert.ToDecimal(item.ValueReceive);
+                    else
+                        entrada_previsao_marketing += Convert.ToDecimal(item.ExpectedValueReceive);
+                }
+                else if (item.Category == CashFlowCategory.Others)
+                {
+                    entrada_outros += Convert.ToDecimal(item.ValueReceive);
+                    if (item.ValueReceive != null)
+                        entrada_outros += Convert.ToDecimal(item.ValueReceive);
+                    else
+                        entrada_previsao_outros += Convert.ToDecimal(item.ExpectedValueReceive);
+                }
+            }
+            else
+            {
+                if (item.Category == CashFlowCategory.Sales)
+                {
+                    if (item.ValueReceive != null)
+                        saida_vendas += Convert.ToDecimal(item.ValueReceive);
+                    else
+                        saida_previsao_vendas += Convert.ToDecimal(item.ExpectedValueReceive);
+                }
+                else if (item.Category == CashFlowCategory.Services)
+                {
+                    if (item.ValueReceive != null)
+                        saida_servico += Convert.ToDecimal(item.ValueReceive);
+                    else
+                        saida_previsao_servico += Convert.ToDecimal(item.ExpectedValueReceive);
+                }
+                else if (item.Category == CashFlowCategory.Rent)
+                {
+                    saida_aluguel += Convert.ToDecimal(item.ValueReceive);
+                    if (item.ValueReceive != null)
+                        saida_aluguel += Convert.ToDecimal(item.ValueReceive);
+                    else
+                        saida_previsao_aluguel += Convert.ToDecimal(item.ExpectedValueReceive);
+                }
+                else if (item.Category == CashFlowCategory.Salaries)
+                {
+                    saida_salarios += Convert.ToDecimal(item.ValueReceive);
+                    if (item.ValueReceive != null)
+                        saida_salarios += Convert.ToDecimal(item.ValueReceive);
+                    else
+                        saida_previsao_salarios += Convert.ToDecimal(item.ExpectedValueReceive);
+                }
+                else if (item.Category == CashFlowCategory.Marketing)
+                {
+                    saida_marketing += Convert.ToDecimal(item.ValueReceive);
+                    if (item.ValueReceive != null)
+                        saida_marketing += Convert.ToDecimal(item.ValueReceive);
+                    else
+                        saida_previsao_marketing += Convert.ToDecimal(item.ExpectedValueReceive);
+                }
+                else if (item.Category == CashFlowCategory.Others)
+                {
+                    saida_outros += Convert.ToDecimal(item.ValueReceive);
+                    if (item.ValueReceive != null)
+                        saida_outros += Convert.ToDecimal(item.ValueReceive);
+                    else
+                        saida_previsao_outros += Convert.ToDecimal(item.ExpectedValueReceive);
+                }
+            }
+        }
+
+        saldo_vendas = entrada_vendas - saida_vendas;
+        saldo_servico = entrada_servico - saida_servico;
+        saldo_aluguel = entrada_aluguel - saida_aluguel;
+        saldo_salarios = entrada_salarios - saida_salarios;
+        saldo_marketing = entrada_marketing - saida_marketing;
+        saldo_outros = entrada_outros - saida_outros;
+    }
+}

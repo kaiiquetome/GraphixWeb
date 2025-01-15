@@ -51,7 +51,7 @@
                             </MudSelect>
                         </MudItem>
                         <MudItem xs="12" sm="3">
-                            <MudTextField Label="Condição de Pagamento" @bind-Value="order.PaymentCondition" />
+                            <MudTextField Label="Condição de Pagamento" HelperText="30/60/90" @bind-Value="order.PaymentCondition" />
                         </MudItem>
                         <MudItem xs="12" sm="3">
                             <MudTextField T="decimal" Label="Total" @bind-Value="order.Total" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) ReadOnly="true" />

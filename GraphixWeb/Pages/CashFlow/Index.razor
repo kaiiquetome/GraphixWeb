@@ -1,0 +1,287 @@
+﻿@page "/cashFlow"
+@inject NavigationManager _navigation
+@inject ICashFlowService _service
+@inject AlertService _alertService
+@inject IJSRuntime _js
+@inject IDialogService _dialogService
+
+<Alert />
+
+<PageTitle>Fluxo de Caixa</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-1">
+    <MudPaper Elevation="1" Class="pa-3" Style="width: 100%;">
+        <MudGrid>
+            <MudItem xs="6" class="d-flex justify-start mb-3">
+                <MudText Typo="Typo.h6">Fluxo de Caixa</MudText>
+            </MudItem>
+            <MudItem xs="6" class="d-flex justify-end mb-3">
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="()=> Refresh(true)">
+                    Atualizar
+                </MudButton>
+            </MudItem>
+            <MudItem xs="10" class="d-flex justify-start mb-3">
+                <MudTextField @bind-Value="searchString"
+                              Placeholder="Pesquisar..."
+                              Adornment="Adornment.Start"
+                              AdornmentColor="Color.Primary"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Immediate="true"
+                              DebounceInterval="300" />
+            </MudItem>
+            <MudItem xs="2" class="d-flex justify-end mb-3">
+                <MudDateRangePicker @bind-DateRange="@_dateRange" Margin="Margin.Dense" ReadOnly="false" Clearable="true"
+                                    PlaceholderStart="Data Inicio" PlaceholderEnd="Data Fim" />
+            </MudItem>
+            <MudItem xs="3" class="d-flex justify-end mb-3">
+                <MudSelect T="CashFlowTypeView" Label="Tipo" @bind-Value="type">
+                    @foreach (var type in Enum.GetValues(typeof(CashFlowTypeView)).Cast<CashFlowTypeView>())
+                    {
+                        <MudSelectItem Value="type">@type.GetEnumDescription()</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="3" class="d-flex justify-end mb-3">
+                <MudSelect T="CashFlowCategoryView" Label="Categoria" @bind-Value="category">
+                    @foreach (var category in Enum.GetValues(typeof(CashFlowCategoryView)).Cast<CashFlowCategoryView>())
+                    {
+                        <MudSelectItem Value="category">@category.GetEnumDescription()</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="2" class="d-flex justify-start mb-3">
+                <MudTextField T="decimal" Label="Recebido" @bind-Value="totalReceive" Variant="Variant.Text" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+            </MudItem>
+            <MudItem xs="2" class="d-flex justify-start mb-3">
+                <MudTextField T="decimal" Label="Previsto" @bind-Value="totalExpected" Variant="Variant.Text" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+            </MudItem>
+            <MudItem xs="2" class="d-flex justify-start mb-3">
+                @if (type == CashFlowTypeView.Input)
+                {
+                    <MudTextField T="decimal" Label="Saldo" @bind-Value="saldo" Variant="Variant.Text" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+                }
+                @if (type == CashFlowTypeView.Output)
+                {
+                    <MudTextField T="decimal" Label="Saldo" @bind-Value="saldo" Variant="Variant.Text" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+                }
+            </MudItem>
+        </MudGrid>
+        <MudTable Items="@filteredCashFlows"
+                  Filter="FilterFunc"
+                  @bind-CurrentPage="currentPage"
+                  @bind-RowsPerPage="rowsPerPage"
+                  RowsPerPageOptions="rowsPerPageOptions"
+                  Elevation="1"
+                  Hover="true"
+                  Dense="false"
+                  Bordered="true"
+                  Style="background-color: #fefefe;"
+                  Breakpoint="Breakpoint.Sm"
+                  Loading="@loading"
+                  LoadingProgressColor="Color.Primary">
+            <HeaderContent>
+                <MudTh>Tipo</MudTh>
+                <MudTh>Categoria</MudTh>
+                <MudTh>Parcela</MudTh>
+                <MudTh>Id Pedido</MudTh>
+                <MudTh>Data Prevista</MudTh>
+                <MudTh>Valor Previsto</MudTh>
+                <MudTh>Data Recebida</MudTh>
+                <MudTh>Valor Recebido</MudTh>
+                <MudTh>Descrição</MudTh>
+                <MudTh Class="d-flex justify-end">Ações</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Tipo">@context.Type.GetEnumDescription()</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Categoria">@context.Category.GetEnumDescription()</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Parcela">@context.InstallmentNumber</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Id Pedido">@context.OrderId</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Data Prevista">@context.ExpectedDateReceive?.ToString("dd/MM/yyyy")</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Valor Previsto">@context.ExpectedValueReceive.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Data Recebida">@context.DateReceive?.ToString("dd/MM/yyyy")</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Valor Recebido">@context.ValueReceive?.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Descrição">@context.Description</MudTd>
+                <MudTd Style="@GetRowStyle(context)">
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.TopRight">
+                        <MudMenuItem OnClick="() => EditCashFlow(context)">
+                            <MudText StartIcon="@Icons.Material.Filled.Edit">Atualizar</MudText>
+                        </MudMenuItem>
+                    </MudMenu>
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager RowsPerPageString="Registros Por Página" />
+            </PagerContent>
+        </MudTable>
+    </MudPaper>
+
+    <MudTooltip Text="Registrar Nova Entrada/Saída">
+        <MudFab StartIcon="@Icons.Material.Filled.Add"
+                Color="Color.Primary"
+                IconColor="Color.Secondary"
+                Size="Size.Medium"
+                Style="position: fixed; right: 30px; bottom: 30px;"
+                Href="cashFlow/form" />
+    </MudTooltip>
+</MudContainer>
+
+@code {
+    private List<CashFlow> cashFlows = new();
+    private List<CashFlow> filteredCashFlows = new();
+    private CashFlow selectedCashFlow = new();
+
+    private bool loading;
+    private string searchString = "";
+
+    private DateTime startDate = DateTime.Now.AddDays(-7);
+    private DateTime endDate = DateTime.Now;
+    private DateRange _dateRange { get; set; }
+
+    private CashFlowCategoryView category;
+    private CashFlowTypeView type;
+
+    private int currentPage;
+    private int rowsPerPage = 20;
+    private int[] rowsPerPageOptions = new[] { 5, 10, 20 };
+
+    private decimal totalReceive = 0;
+    private decimal totalExpected = 0;
+    private decimal saldo = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Refresh();
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    private async Task Refresh(bool byUser = false)
+    {
+        try
+        {
+            if (_dateRange != null && _dateRange.Start != null)
+                startDate = Convert.ToDateTime(_dateRange.Start);
+
+            if (_dateRange != null && _dateRange.End != null)
+                endDate = Convert.ToDateTime(_dateRange.End);
+
+            loading = true;
+            cashFlows = await _service.Get(startDate, endDate);
+
+            if (byUser)
+            {
+                var categoryRequest = CashFlowCategory.Sales;
+                var typeRequest = CashFlowType.Input;
+
+                if (category != CashFlowCategoryView.All)
+                    categoryRequest = EnumExtensions.GetEnumValueFromDescription<CashFlowCategory>(category.GetEnumDescription());
+
+                if (type != CashFlowTypeView.All)
+                    typeRequest = EnumExtensions.GetEnumValueFromDescription<CashFlowType>(type.GetEnumDescription());
+
+                if (category != CashFlowCategoryView.All && type != CashFlowTypeView.All)
+                    filteredCashFlows = cashFlows.Where(w => w.Category == categoryRequest && w.Type == typeRequest).ToList();
+                else if (category != CashFlowCategoryView.All)
+                    filteredCashFlows = cashFlows.Where(w => w.Category == categoryRequest).ToList();
+                else if (type != CashFlowTypeView.All)
+                    filteredCashFlows = cashFlows.Where(w => w.Type == typeRequest).ToList();
+                else
+                    filteredCashFlows = cashFlows;
+            }
+            else
+                filteredCashFlows = cashFlows;
+
+            loading = false;
+            RecalcTotal();
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+        }
+    }
+    private void RecalcTotal()
+    {
+        totalReceive = 0;
+        totalExpected = 0;
+        totalExpected = filteredCashFlows.Sum(s => s.ExpectedValueReceive);
+        decimal totalEntrada = 0;
+        decimal saida = 0;
+
+        foreach (var item in filteredCashFlows)
+        {
+            if (item.ValueReceive != null)
+                totalReceive = totalReceive + Convert.ToDecimal(item.ValueReceive);
+        }
+        foreach (var item in filteredCashFlows)
+        {
+            if (item.Type == CashFlowType.Input && item.ValueReceive != null)
+                totalEntrada += Convert.ToDecimal(item.ValueReceive);
+            if (item.Type == CashFlowType.Output && item.ValueReceive != null)
+                saida += Convert.ToDecimal(item.ValueReceive);
+        }
+
+
+        saldo = totalEntrada - saida;
+    }
+    private bool FilterFunc(CashFlow cashFlow)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        return cashFlow.Description?.Contains(searchString, StringComparison.OrdinalIgnoreCase) ?? false;
+    }
+
+    private async Task EditCashFlow(CashFlow cashFlow)
+    {
+        _navigation.NavigateTo($"cashFlow/form/{cashFlow.Id}");
+    }
+
+    private async Task DeleteCashFlow(CashFlow cashFlow)
+    {
+        try
+        {
+            bool? result = await _dialogService.ShowMessageBox(
+                "Excluir",
+                $"Confirma a exclusão do registro: {cashFlow.Description}?",
+                yesText: "Sim", cancelText: "Não");
+            if (result == true)
+            {
+                await _service.Delete(cashFlow.Id);
+                await InvokeAsync(() => { _alertService.ShowAlert("Registro deletado com sucesso!", Severity.Success); });
+                cashFlows.Remove(cashFlow);
+                filteredCashFlows.Remove(cashFlow);
+            }
+        }
+        catch (Exception ex)
+        {
+            await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
+        }
+    }
+    private string GetRowStyle(CashFlow cash)
+    {
+        if (cash.ExpectedDateReceive.HasValue)
+        {
+            var daysLeft = (cash.ExpectedDateReceive.Value - DateTime.Now).TotalDays;
+
+            if (daysLeft < 0 && cash.ValueReceive == null)
+            {
+                // Prazo excedido - vermelho translúcido
+                return "background-color: rgba(255, 0, 0, 0.3); color: white;";
+            }
+            else if (daysLeft <= 3 && cash.ValueReceive == null)
+            {
+                // Menos de 3 dias - amarelo translúcido
+                return "background-color: rgba(255, 255, 0, 0.5); color: black;";
+            }
+            else if (cash.ValueReceive.HasValue)
+            {
+                return "background-color: rgba(193, 240, 193); color: black;";
+            }
+        }
+        return ""; // Sem cor
+    }
+}
