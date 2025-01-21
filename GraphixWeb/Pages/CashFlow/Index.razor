@@ -50,20 +50,19 @@
                 </MudSelect>
             </MudItem>
             <MudItem xs="2" class="d-flex justify-start mb-3">
-                <MudTextField T="decimal" Label="Recebido" @bind-Value="totalReceive" Variant="Variant.Text" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+                @if (type != CashFlowTypeView.All)
+                {
+                    <MudTextField T="decimal" Label="Recebido" @bind-Value="totalReceive" Variant="Variant.Text" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+                }
             </MudItem>
             <MudItem xs="2" class="d-flex justify-start mb-3">
-                <MudTextField T="decimal" Label="Previsto" @bind-Value="totalExpected" Variant="Variant.Text" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+                @if (type != CashFlowTypeView.All)
+                {
+                    <MudTextField T="decimal" Label="Previsto" @bind-Value="totalExpected" Variant="Variant.Text" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+                }
             </MudItem>
             <MudItem xs="2" class="d-flex justify-start mb-3">
-                @if (type == CashFlowTypeView.Input)
-                {
-                    <MudTextField T="decimal" Label="Saldo" @bind-Value="saldo" Variant="Variant.Text" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
-                }
-                @if (type == CashFlowTypeView.Output)
-                {
-                    <MudTextField T="decimal" Label="Saldo" @bind-Value="saldo" Variant="Variant.Text" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
-                }
+                <MudTextField T="decimal" Label="Saldo" @bind-Value="saldo" Variant="Variant.Text" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
             </MudItem>
         </MudGrid>
         <MudTable Items="@filteredCashFlows"
