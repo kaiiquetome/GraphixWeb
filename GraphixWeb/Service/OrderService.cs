@@ -39,6 +39,11 @@ namespace GraphixWeb.Service
             return await _apiClient.GetAsync<List<Order>>($"{_baseMethod}");
         }
 
+        public async Task<List<Order>> Get(string startDate, string endDate)
+        {
+            return await _apiClient.GetAsync<List<Order>>($"{_baseMethod}?StartDate={startDate}&EndDate={endDate}");
+        }
+
         public async Task Update(Order order)
         {
             await _apiClient.PutAsync<bool>(_baseMethod, _mapper.Map<OrderDto>(order));

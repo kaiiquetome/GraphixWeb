@@ -12,9 +12,15 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pa-1">
     <MudPaper Elevation="1" Class="pa-3" Style="width: 100%;">
         <MudGrid>
-            <MudItem xs="12" class="d-flex justify-start mb-3">
+            <MudItem xs="10" class="d-flex justify-start mb-3">
                 <MudText Typo="Typo.h6">Pedidos</MudText>
-                <MudSpacer />
+            </MudItem>
+            <MudItem xs="2" class="d-flex justify-end mb-3">
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="()=> Refresh()">
+                    Atualizar
+                </MudButton>
+            </MudItem>
+            <MudItem xs="10" class="d-flex justify-start mb-3">
                 <MudTextField @bind-Value="searchString"
                               Placeholder="Pesquisar pedidos..."
                               Adornment="Adornment.Start"
@@ -22,6 +28,10 @@
                               AdornmentIcon="@Icons.Material.Filled.Search"
                               Immediate="true"
                               DebounceInterval="300" />
+            </MudItem>
+            <MudItem xs="2" class="d-flex justify-end mb-3">
+                <MudDateRangePicker @bind-DateRange="@_dateRange" Margin="Margin.Dense" ReadOnly="false" Clearable="true"
+                                    PlaceholderStart="Data Inicio" PlaceholderEnd="Data Fim" />
             </MudItem>
         </MudGrid>
         <MudTable Items="@filteredOrders"
@@ -160,6 +170,10 @@
     private List<Order> filteredOrders = new();
     private Order selectedOrderDetail = new();
 
+    private DateRange _dateRange { get; set; }
+    private DateTime startDate = DateTime.Now.AddDays(-7);
+    private DateTime endDate = DateTime.Now;
+
     private bool loading;
     private string searchString = "";
 
@@ -237,22 +251,34 @@
     }
     protected override async Task OnInitializedAsync()
     {
+        loading = true;
+        await InvokeAsync(StateHasChanged);
+        await Refresh();
+        loading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+    private async Task Refresh()
+    {
         try
         {
             loading = true;
             await InvokeAsync(StateHasChanged);
-            orders = await _service.Get();
+            if (_dateRange != null && _dateRange.Start != null)
+                startDate = Convert.ToDateTime(_dateRange.Start);
+
+            if (_dateRange != null && _dateRange.End != null)
+                endDate = Convert.ToDateTime(_dateRange.End);
+
+            orders = await _service.Get(startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"));
             filteredOrders = orders;
             loading = false;
             await InvokeAsync(StateHasChanged);
-
         }
         catch (Exception ex)
         {
             await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
         }
     }
-
     private string GetRowStyle(Order order)
     {
         if (order.DeliveryDeadline.HasValue)
