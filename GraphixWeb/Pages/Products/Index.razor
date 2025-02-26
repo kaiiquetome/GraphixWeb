@@ -16,12 +16,12 @@
                 <MudText Typo="Typo.h6">Produtos</MudText>
                 <MudSpacer />
                 <MudTextField @bind-Value="searchString"
-                            Placeholder="Pesquisar produtos..."
-                            Adornment="Adornment.Start"
-                            AdornmentColor="Color.Primary"
-                            AdornmentIcon="@Icons.Material.Filled.Search"
-                            Immediate="true"
-                            DebounceInterval="300" />
+                              Placeholder="Pesquisar produtos..."
+                              Adornment="Adornment.Start"
+                              AdornmentColor="Color.Primary"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Immediate="true"
+                              DebounceInterval="300" />
             </MudItem>
         </MudGrid>
 
@@ -38,41 +38,41 @@
                   @bind-CurrentPage="currentPage"
                   @bind-RowsPerPage="rowsPerPage"
                   RowsPerPageOptions="rowsPerPageOptions">
-                <HeaderContent>
-                    <MudTh DataLabel="Descrição" SortLabel="Description">Descrição</MudTh>
-                    <MudTh DataLabel="Acabamento" SortLabel="Finish">Acabamento</MudTh>
-                    <MudTh DataLabel="Cor" SortLabel="Color">Cor</MudTh>
-                    <MudTh DataLabel="Dimensão" SortLabel="Dimension">Dimensão</MudTh>
-                    <MudTh DataLabel="Faca" SortLabel="Knife">Faca</MudTh>
-                    <MudTh DataLabel="Tubete" SortLabel="Tubet">Tubete</MudTh>                    
-                    <MudTh DataLabel="Material" SortLabel="Material">Material</MudTh>
-                    <MudTh DataLabel="Observações" SortLabel="Observation">Observações</MudTh>
-                    <MudTh>Ações</MudTh>
-                </HeaderContent>
-                <RowTemplate>
-                    <MudTd DataLabel="Descrição">@context.Description</MudTd>
-                    <MudTd DataLabel="Acabamento">@context.Finish</MudTd>
-                    <MudTd DataLabel="Cor">@context.Color</MudTd>
-                    <MudTd DataLabel="Dimensão">@context.Dimension</MudTd>
-                    <MudTd DataLabel="Faca">@context.Knife</MudTd>
-                    <MudTd DataLabel="Tubete">@context.Tubet</MudTd>
-                    <MudTd DataLabel="Material">@context.Material</MudTd>                    
-                    <MudTd DataLabel="Observações">@context.Observation</MudTd>
-                    <MudTd>
-                        <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.TopRight">
+            <HeaderContent>
+                <MudTh DataLabel="Descrição" SortLabel="Description">Descrição</MudTh>
+                <MudTh DataLabel="Acabamento" SortLabel="Finish">Acabamento</MudTh>
+                <MudTh DataLabel="Cor" SortLabel="Color">Cor</MudTh>
+                <MudTh DataLabel="Dimensão" SortLabel="Dimension">Dimensão</MudTh>
+                <MudTh DataLabel="Faca" SortLabel="Knife">Faca</MudTh>
+                <MudTh DataLabel="Tubete" SortLabel="Tubet">Tubete</MudTh>
+                <MudTh DataLabel="Material" SortLabel="Material">Material</MudTh>
+                <MudTh DataLabel="Observações" SortLabel="Observation">Observações</MudTh>
+                <MudTh>Ações</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Descrição">@context.Description</MudTd>
+                <MudTd DataLabel="Acabamento">@context.Finish</MudTd>
+                <MudTd DataLabel="Cor">@context.Color</MudTd>
+                <MudTd DataLabel="Dimensão">@context.Dimension</MudTd>
+                <MudTd DataLabel="Faca">@context.Knife</MudTd>
+                <MudTd DataLabel="Tubete">@context.Tubet</MudTd>
+                <MudTd DataLabel="Material">@context.Material</MudTd>
+                <MudTd DataLabel="Observações">@context.Observation</MudTd>
+                <MudTd>
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert" AnchorOrigin="Origin.TopRight">
                         <MudMenuItem Href="@($"{_navigation.BaseUri}product/form/{context.Id}")">
-                                <MudText StartIcon="@Icons.Material.Filled.Edit">Editar</MudText>
-                            </MudMenuItem>
-                            @* <MudMenuItem OnClick="() => DeleteProduct(context.Id)">
+                            <MudText StartIcon="@Icons.Material.Filled.Edit">Editar</MudText>
+                        </MudMenuItem>
+                        @* <MudMenuItem OnClick="() => DeleteProduct(context.Id)">
                                 <MudText StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Excluir</MudText>
                             </MudMenuItem> *@
-                        </MudMenu>
-                    </MudTd>
-                </RowTemplate>
-                <PagerContent>
+                    </MudMenu>
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
                 <MudTablePager RowsPerPageString="Produtos Por Página" />
-                </PagerContent>
-            </MudTable>
+            </PagerContent>
+        </MudTable>
     </MudPaper>
     <MudTooltip Text="Criar Novo Produto">
         <MudFab StartIcon="@Icons.Material.Filled.Add"
@@ -106,24 +106,23 @@
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
-
         if (product.Id.ToString().Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (product.Description.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (product.Description != null && product.Description.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (product.Finish.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (product.Finish != null && product.Finish.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (product.Color.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (product.Color != null && product.Color.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (product.Dimension.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (product.Dimension != null && product.Dimension.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (product.Knife.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (product.Knife != null && product.Knife.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (product.Tubet.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (product.Tubet != null && product.Tubet.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (product.Material.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (product.Material != null && product.Material.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (product.Observation.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (product.Observation != null && product.Observation.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;
@@ -136,7 +135,7 @@
         currentPage = 0; // Resetar para a primeira página após a busca
     }
 
-   
+
 
     private async Task DeleteProduct(int id)
     {
@@ -161,5 +160,5 @@
         }
     }
 
-    
+
 }
