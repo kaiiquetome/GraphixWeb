@@ -353,12 +353,18 @@
     {
         try
         {
-            var startDate = DateTime.Now.AddDays(-60).ToString("yyyy-MM-dd");
-            var endDate = DateTime.Now.ToString("yyyy-MM-dd");
+            var startDate = DateTime.Now.AddDays(-60);
+            var endDate = DateTime.Now;
+
+            if (_dateRange != null && _dateRange.Start != null)
+                startDate = Convert.ToDateTime(_dateRange.Start);
+
+            if (_dateRange != null && _dateRange.End != null)
+                endDate = Convert.ToDateTime(_dateRange.End);
 
             var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             var fileName = "RelatórioPedidos.xlsx";
-            var fileBytes = await _service.Export(startDate, endDate);
+            var fileBytes = await _service.Export(startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"));
 
             await _js.InvokeVoidAsync("downloadFileFromBytes", fileName, contentType, fileBytes);
         }
