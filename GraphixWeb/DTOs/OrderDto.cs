@@ -14,6 +14,7 @@ namespace GraphixWeb.DTOs
         public decimal Freight { get; set; }
         public bool FOB { get; set; }
         public DateTime? DeliveryDeadline { get; set; }
+        public DateTime? DeliveryDate { get; set; }
         public List<OrderItemDto> Items { get; set; }
     }
 }

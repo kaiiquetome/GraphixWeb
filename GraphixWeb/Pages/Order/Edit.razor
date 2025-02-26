@@ -39,10 +39,13 @@
                                 }
                             </MudSelect>
                         </MudItem>
-                        <MudItem xs="12" sm="3">
-                            <MudDatePicker Label="Data de Entrega" @bind-Date="order.DeliveryDeadline" Editable="true" ShowToolbar="false" />
+                        <MudItem xs="6" sm="2">
+                            <MudDatePicker Label="Data Previsão de Entrega" @bind-Date="order.DeliveryDeadline" Editable="true" ShowToolbar="false" />
                         </MudItem>
-                        <MudItem xs="12" sm="3" Class="d-flex justify-end">
+                        <MudItem xs="6" sm="2">
+                            <MudDatePicker Label="Data de Entrega" @bind-Date="order.DeliveryDate" Editable="true" ShowToolbar="false" />
+                        </MudItem>
+                        <MudItem xs="6" sm="2" Class="d-flex justify-end">
                             <MudSelect T="OrderStatus" Label="Status do Pedido" @bind-Value="order.Status">
                                 @foreach (var status in Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>())
                                 {

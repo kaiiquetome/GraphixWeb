@@ -15,9 +15,11 @@ namespace GraphixWeb.Models
         public decimal Freight { get; set; }
         public bool FOB { get; set; } = false;
         public DateTime? DeliveryDeadline { get; set; }
+        public DateTime? DeliveryDate { get; set; }
         public List<OrderItem> Items { get; set; }
         public Account Account { get; set; }
         public Customer Customer { get; set; }
+
         [JsonIgnore]
         public bool ShowDetails { get; set; }
     }
