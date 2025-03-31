@@ -11,6 +11,7 @@ namespace GraphixWeb.DTOs
         public decimal Total { get; set; }
         public string? Observation { get; set; }
         public string? PaymentCondition { get; set; }
+        public string? Seller { get; set; }
         public decimal Freight { get; set; }
         public bool FOB { get; set; }
         public DateTime? DeliveryDeadline { get; set; }

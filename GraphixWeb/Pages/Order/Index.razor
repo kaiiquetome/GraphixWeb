@@ -53,6 +53,7 @@
                 <MudTh>Total</MudTh>
                 <MudTh>Prazo de Entrega</MudTh>
                 <MudTh>Data de Entrega</MudTh>
+                <MudTh>Vendedor</MudTh>
                 <MudTh>Status</MudTh>
                 <MudTh Class="d-flex justify-end">
                     <MudTooltip Text="Exportar">
@@ -70,6 +71,7 @@
                 <MudTd Style="@GetRowStyle(context)" DataLabel="Total">@context.Total.ToString("C2", new System.Globalization.CultureInfo("pt-BR"))</MudTd>
                 <MudTd Style="@GetRowStyle(context)" DataLabel="Prazo de entrega">@context.DeliveryDeadline?.ToString("dd/MM/yyyy")</MudTd>
                 <MudTd Style="@GetRowStyle(context)" DataLabel="Data de entrega">@context.DeliveryDate?.ToString("dd/MM/yyyy")</MudTd>
+                <MudTd Style="@GetRowStyle(context)" DataLabel="Vendedor">@context.Seller</MudTd>
                 <MudTd Style="@GetRowStyle(context)" DataLabel="Status">@context.Status.GetEnumDescription()</MudTd>
                 <MudTd>
                     <MudText StartIcon="@((context.ShowDetails) ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"></MudText>
@@ -199,6 +201,9 @@
 
         // Verificar cada campo com segurança contra nulos
         if (orderNumberStr.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (!string.IsNullOrWhiteSpace(order.Seller) && order.Seller.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
         if (customerIdStr.Contains(searchString, StringComparison.OrdinalIgnoreCase))

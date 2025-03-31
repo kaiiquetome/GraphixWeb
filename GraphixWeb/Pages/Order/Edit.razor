@@ -65,8 +65,11 @@
                         <MudItem xs="12" sm="3" >
                             <MudCheckBox @bind-Value="order.FOB" Label="FOB" Size="Size.Small" Color="Color.Primary"></MudCheckBox>
                         </MudItem>
-                        <MudItem xs="12" sm="12">
+                        <MudItem xs="12" sm="8">
                             <MudTextField Label="Observações" @bind-Value="order.Observation" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudTextField Label="Vendedor" @bind-Value="order.Seller" />
                         </MudItem>
                     </MudGrid>
                 </EditForm>
