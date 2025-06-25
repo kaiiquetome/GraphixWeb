@@ -8,11 +8,13 @@ namespace GraphixWeb.Service
     {
         private readonly string _baseMethod;
         private readonly ApiClient _apiClient;
+
         public ProductService(ApiClient apiClient)
         {
             _baseMethod = "product";
             _apiClient = apiClient;
         }
+
         public async Task Create(Product product)
         {
             await _apiClient.PostAsync<bool>(_baseMethod, product);
@@ -30,7 +32,9 @@ namespace GraphixWeb.Service
 
         public async Task<List<Product>> Get()
         {
-            return await _apiClient.GetAsync<List<Product>>($"{_baseMethod}");
+            var response = await _apiClient.GetAsync<BaseListModel<Product>>($"{_baseMethod}");
+
+            return response.Data;
         }
 
         public async Task Update(Product product)

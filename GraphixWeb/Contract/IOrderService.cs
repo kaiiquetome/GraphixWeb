@@ -11,7 +11,7 @@ namespace GraphixWeb.Contract
 
         Task<List<Order>> Get();
 
-        Task<List<Order>> Get(string startDate, string endDate);
+        Task<List<Order>> Get(string startDate, string endDate, int pageSize = 20);
 
         Task Update(Order order);
 

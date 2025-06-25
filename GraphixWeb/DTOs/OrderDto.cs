@@ -9,6 +9,7 @@ namespace GraphixWeb.DTOs
         public OrderStatus Status { get; set; }
         public int OrderNumber { get; set; }
         public decimal Total { get; set; }
+        public decimal Discount { get; set; }
         public string? Observation { get; set; }
         public string? PaymentCondition { get; set; }
         public string? Seller { get; set; }

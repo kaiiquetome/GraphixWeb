@@ -38,6 +38,12 @@ namespace GraphixWeb.Service
             return await _apiClient.GetAsync<List<CashFlow>>($"{_baseMethod}?startDate={startD}&endDate={endD}");
         }
 
+        public async Task<List<CashFlow>> Get(string startDate, string endDate, int pageSize = 20)
+        {
+            var response = await _apiClient.GetAsync<BaseListModel<CashFlow>>($"{_baseMethod}?StartDate={startDate}&EndDate={endDate}&PageSize={pageSize}");
+            return response.Data;
+        }
+
         public async Task<CashFlow> Get(int id)
         {
             return await _apiClient.GetAsync<CashFlow>($"{_baseMethod}/{id}");

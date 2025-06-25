@@ -169,7 +169,7 @@
                 endDate = Convert.ToDateTime(_dateRange.End);
 
             loading = true;
-            cashFlows = await _service.Get(startDate, endDate);
+            cashFlows = await _service.Get(startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"), rowsPerPage);
 
             if (byUser)
             {

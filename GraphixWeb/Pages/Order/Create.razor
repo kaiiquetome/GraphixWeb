@@ -19,10 +19,10 @@
                 <MudText Typo="Typo.h6">Novo Pedido</MudText>
             </CardHeaderContent>
             <CardHeaderActions>
-                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="()=> RecalcTotal()">
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => RecalcTotal()">
                     Recalcular Total
                 </MudButton>
-                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="()=> CreateOrder()">
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="() => CreateOrder()">
                     Salvar
                 </MudButton>
             </CardHeaderActions>
@@ -56,7 +56,7 @@
                         <MudItem xs="12" sm="3">
                             <MudTextField T="decimal" Label="Total" @bind-Value="order.Total" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) ReadOnly="true" />
                         </MudItem>
-                        <MudItem xs="12" sm="3">
+                        <MudItem xs="12" sm="2">
                             <MudTextField T="decimal"
                                           Label="Frete"
                                           @bind-Value="order.Freight"
@@ -65,7 +65,16 @@
                                           Immediate="false"
                                           @bind-Value:after="RecalcTotal" />
                         </MudItem>
-                        <MudItem xs="12" sm="3">
+                        <MudItem xs="12" sm="2">
+                            <MudTextField T="decimal"
+                                          Label="Desconto"
+                                          @bind-Value="order.Discount"
+                                          Format="C2"
+                                          Culture=@(new System.Globalization.CultureInfo("pt-BR"))
+                                          Immediate="false"
+                                          @bind-Value:after="RecalcTotal" />
+                        </MudItem>
+                        <MudItem xs="12" sm="2">
                             <MudCheckBox @bind-Value="order.FOB"
                                          Label="FOB"
                                          Size="Size.Small"
@@ -208,9 +217,9 @@
 
 @code {
     private Order order = new Order
-        {
-            DeliveryDeadline = DateTime.Now.AddDays(7),
-        };
+    {
+        DeliveryDeadline = DateTime.Now.AddDays(7),
+    };
     private bool loading = false;
     private List<Customer> customers = new();
     private List<Account> accounts = new();
@@ -276,6 +285,9 @@
             foreach (var item in order.Items)
                 if (item.Quantity > 0 && item.Total > 0)
                     order.Total += item.Quantity * item.Total;
+
+        if (order.Discount > 0)
+            order.Total = order.Total - order.Discount;
 
         InvokeAsync(StateHasChanged);
     }

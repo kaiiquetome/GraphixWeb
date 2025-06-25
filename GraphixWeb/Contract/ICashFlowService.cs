@@ -6,6 +6,8 @@ namespace GraphixWeb.Contract
     {
         Task<List<CashFlow>> Get(DateTime startDate, DateTime endDate);
 
+        Task<List<CashFlow>> Get(string startDate, string endDate, int pageSize = 20);
+
         Task<CashFlow> Get(int id);
 
         Task Update(CashFlow os);

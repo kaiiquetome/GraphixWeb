@@ -16,37 +16,37 @@
                 <MudText Typo="Typo.h6">Pedidos</MudText>
             </MudItem>
             <MudItem xs="2" class="d-flex justify-end mb-3">
-                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="()=> Refresh()">
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="() => Refresh()">
                     Atualizar
                 </MudButton>
             </MudItem>
             <MudItem xs="10" class="d-flex justify-start mb-3">
                 <MudTextField @bind-Value="searchString"
-                Placeholder="Pesquisar pedidos..."
-                Adornment="Adornment.Start"
-                AdornmentColor="Color.Primary"
-                AdornmentIcon="@Icons.Material.Filled.Search"
-                Immediate="true"
-                DebounceInterval="300" />
+                              Placeholder="Pesquisar pedidos..."
+                              Adornment="Adornment.Start"
+                              AdornmentColor="Color.Primary"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              Immediate="true"
+                              DebounceInterval="300" />
             </MudItem>
             <MudItem xs="2" class="d-flex justify-end mb-3">
                 <MudDateRangePicker @bind-DateRange="@_dateRange" Margin="Margin.Dense" ReadOnly="false" Clearable="true"
-                PlaceholderStart="Data Inicio" PlaceholderEnd="Data Fim" />
+                                    PlaceholderStart="Data Inicio" PlaceholderEnd="Data Fim" />
             </MudItem>
         </MudGrid>
         <MudTable Items="@filteredOrders"
-        Filter="FilterFunc"
-        @bind-CurrentPage="currentPage"
-        @bind-RowsPerPage="rowsPerPage"
-        RowsPerPageOptions="rowsPerPageOptions"
-        Elevation="1"
-        Hover="true"
-        Dense="false"
-        Bordered="true"
-        Style="background-color: #fefefe;"
-        Breakpoint="Breakpoint.Sm"
-        Loading="@loading"
-        LoadingProgressColor="Color.Primary">
+                  Filter="FilterFunc"
+                  @bind-CurrentPage="currentPage"
+                  @bind-RowsPerPage="rowsPerPage"
+                  RowsPerPageOptions="rowsPerPageOptions"
+                  Elevation="1"
+                  Hover="true"
+                  Dense="false"
+                  Bordered="true"
+                  Style="background-color: #fefefe;"
+                  Breakpoint="Breakpoint.Sm"
+                  Loading="@loading"
+                  LoadingProgressColor="Color.Primary">
             <HeaderContent>
                 <MudTh>Cliente</MudTh>
                 <MudTh>Nº do Pedido</MudTh>
@@ -58,10 +58,10 @@
                 <MudTh Class="d-flex justify-end">
                     <MudTooltip Text="Exportar">
                         <MudIconButton Icon="@Icons.Material.Filled.SystemUpdateAlt"
-                        Color="Color.Success"
-                        Variant="Variant.Filled"
-                        Size="Size.Small"
-                        OnClick="() => DownloadReport()" />
+                                       Color="Color.Success"
+                                       Variant="Variant.Filled"
+                                       Size="Size.Small"
+                                       OnClick="() => DownloadReport()" />
                     </MudTooltip>
                 </MudTh>
             </HeaderContent>
@@ -156,11 +156,11 @@
 
     <MudTooltip Text="Criar Novo Pedido">
         <MudFab StartIcon="@Icons.Material.Filled.Add"
-        Color="Color.Primary"
-        IconColor="Color.Secondary"
-        Size="Size.Medium"
-        Style="position: fixed; right: 30px; bottom: 30px;"
-        Href="order/create" />
+                Color="Color.Primary"
+                IconColor="Color.Secondary"
+                Size="Size.Medium"
+                Style="position: fixed; right: 30px; bottom: 30px;"
+                Href="order/create" />
     </MudTooltip>
 </MudContainer>
 
@@ -289,6 +289,7 @@
             await InvokeAsync(() => { _alertService.ShowAlert(ex.Message, Severity.Error); });
         }
     }
+
     private string GetRowStyle(Order order)
     {
         if (order.DeliveryDeadline.HasValue)
@@ -309,7 +310,7 @@
             {
                 if (order.DeliveryDate != null)
                 {
-                    if(order.DeliveryDate > order.DeliveryDeadline)
+                    if (order.DeliveryDate > order.DeliveryDeadline)
                         return "background-color: rgba(0, 51, 204); color: white;";
                     else
                         return "background-color: rgba(193, 240, 193); color: black;";

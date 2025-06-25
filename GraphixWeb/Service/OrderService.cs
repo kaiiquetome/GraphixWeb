@@ -36,12 +36,15 @@ namespace GraphixWeb.Service
 
         public async Task<List<Order>> Get()
         {
-            return await _apiClient.GetAsync<List<Order>>($"{_baseMethod}");
+            var response = await _apiClient.GetAsync<BaseListModel<Order>>($"{_baseMethod}");
+
+            return response.Data;
         }
 
-        public async Task<List<Order>> Get(string startDate, string endDate)
+        public async Task<List<Order>> Get(string startDate, string endDate, int pageSize = 20)
         {
-            return await _apiClient.GetAsync<List<Order>>($"{_baseMethod}?StartDate={startDate}&EndDate={endDate}");
+            var response = await _apiClient.GetAsync<BaseListModel<Order>>($"{_baseMethod}?StartDate={startDate}&EndDate={endDate}&PageSize={pageSize}");
+            return response.Data;
         }
 
         public async Task Update(Order order)

@@ -59,10 +59,13 @@
                         <MudItem xs="12" sm="3">
                             <MudTextField T="decimal" Label="Total" @bind-Value="order.Total" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) ReadOnly="true" />
                         </MudItem>
-                        <MudItem xs="12" sm="3">
+                        <MudItem xs="12" sm="2">
                             <MudTextField Label="Frete" @bind-Value="order.Freight" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
                         </MudItem>
-                        <MudItem xs="12" sm="3" >
+                        <MudItem xs="12" sm="2">
+                            <MudTextField Label="Desconto" @bind-Value="order.Discount" Format="C2" Culture=@(new System.Globalization.CultureInfo("pt-BR")) />
+                        </MudItem>
+                        <MudItem xs="12" sm="2" >
                             <MudCheckBox @bind-Value="order.FOB" Label="FOB" Size="Size.Small" Color="Color.Primary"></MudCheckBox>
                         </MudItem>
                         <MudItem xs="12" sm="8">
@@ -338,7 +341,8 @@
                     order.Total += item.Quantity * item.Total;
             }
         }
-
+        if(order.Discount >0)
+        order.Total = order.Total - order.Discount;
         await InvokeAsync(StateHasChanged);
         await InvokeAsync(StateHasChanged);
     }
