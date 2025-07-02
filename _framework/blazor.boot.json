@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "GraphixWeb",
   "resources": {
-    "hash": "sha256-DlWD9uEosfBLbQqdx1KyE2bB9Tt71G7Rz2VUwyAdZGU=",
+    "hash": "sha256-UrnYnEd9mHKh8ntzN9WO2pIXjet85BAc2EHwurwxFWo=",
     "jsModuleNative": {
       "dotnet.native.8.0.17.0o4vhqqe2w.js": "sha256-CQipVS8eprsqdtVOCNBxswjfBenmWgkhhZYmVGVqXZc="
     },
@@ -19,7 +19,7 @@
     "assembly": {
       "AutoMapper.wasm": "sha256-pQ4Xf706xSWYtP4HFejje/2xeMx82yLD1hKlKL3JR1I=",
       "BlazorInputMask.wasm": "sha256-6rfwIiKYypCxlt9srnY3B0+xjcI28YgXgNPuRj0fvD8=",
-      "GraphixWeb.wasm": "sha256-NxFN/jCqkiS0re0ye/4inud+6yLoe9ao01DNlu21Fa4=",
+      "GraphixWeb.wasm": "sha256-HQmDRoKvU5KSeZK2TLyPlljAEAp38ds64lZVC8zGeb8=",
       "Microsoft.AspNetCore.Authorization.wasm": "sha256-WHV91hKpEkms8mH83PcvILvo1tQWa5ysbLSL6mpPl9g=",
       "Microsoft.AspNetCore.Components.Authorization.wasm": "sha256-kdujXlBr+hSY7ZMAEvM6zq0Ye7qvCxK91EQNvgIDUPQ=",
       "Microsoft.AspNetCore.Components.Forms.wasm": "sha256-PdwhtsA5wncrjKBD/bYhO3P0W8yeauEn2geyZ25iqlI=",
