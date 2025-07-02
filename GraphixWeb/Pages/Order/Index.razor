@@ -279,7 +279,7 @@
             if (_dateRange != null && _dateRange.End != null)
                 endDate = Convert.ToDateTime(_dateRange.End);
 
-            orders = await _service.Get(startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"));
+            orders = await _service.Get(startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"), rowsPerPage);
             filteredOrders = orders;
             loading = false;
             await InvokeAsync(StateHasChanged);
